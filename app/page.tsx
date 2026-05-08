@@ -6,47 +6,31 @@ export default function Home() {
     <GuideInfoBox>
       <ul>
         <li className="text-l">
-          🤝
           <span className="ml-2">
-            This template showcases a simple chatbot using{" "}
-            <a href="https://js.langchain.com/" target="_blank">
-              LangChain.js
-            </a>{" "}
-            and the Vercel{" "}
-            <a href="https://sdk.vercel.ai/docs" target="_blank">
-              AI SDK
-            </a>{" "}
-            in a{" "}
-            <a href="https://nextjs.org/" target="_blank">
-              Next.js
-            </a>{" "}
-            project.
+            這個聊天視窗已支援多輪上下文追問，可直接延續上一題，例如：
+            <code>那跟同業比呢？</code>
           </span>
         </li>
         <li className="hidden text-l md:block">
-          💻
           <span className="ml-2">
-            You can find the prompt and model logic for this use-case in{" "}
-            <code>app/api/chat/route.ts</code>.
+            右上角可建立新對話、複製整段內容，手機版可從
+            <code>歷史紀錄</code> 入口切換過去案件。
           </span>
         </li>
         <li>
-          🏴‍☠️
           <span className="ml-2">
-            By default, the bot is pretending to be a pirate, but you can change
-            the prompt to whatever you want!
+            每則助理回答都可單獨複製，也可複製整段對話。
           </span>
         </li>
         <li className="hidden text-l md:block">
-          🎨
           <span className="ml-2">
-            The main frontend logic is found in <code>app/page.tsx</code>.
+            若需正式串接後端歷史紀錄與案件系統，可從
+            <code>app/api/chat/sessions</code> 開始接入。
           </span>
         </li>
         <li className="text-l">
-          👇
           <span className="ml-2">
-            Try asking e.g. <code>What is it like to be a pirate?</code> below!
+            可先測試：<code>請分析這家公司授信風險</code>
           </span>
         </li>
       </ul>
@@ -55,9 +39,14 @@ export default function Home() {
   return (
     <ChatWindow
       endpoint="api/chat"
-      emoji="🏴‍☠️"
-      placeholder="I'm an LLM pretending to be a pirate! Ask me about the pirate life!"
+      emoji="AI"
+      placeholder="請輸入授信調查問題，支援多輪追問，例如：那跟同業比呢？"
       emptyStateComponent={InfoCard}
+      presetQuestions={[
+        "現金水位是否充足？",
+        "是否有短債壓力？",
+        "近三期營收與獲利趨勢是否惡化？",
+      ]}
     />
   );
 }
