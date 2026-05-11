@@ -35,7 +35,7 @@ import { cn } from "@/utils/cn";
 
 const STORAGE_KEY = "aitc-chatbot-sessions-v1";
 const HISTORY_PANEL_STORAGE_KEY = "aitc-chatbot-history-panel-open-v1";
-const SETTINGS_PANEL_STORAGE_KEY = "aitc-chatbot-settings-panel-open-v1";
+const SETTINGS_PANEL_STORAGE_KEY = "aitc-chatbot-settings-panel-open-v2";
 
 type ChatSettings = {
   company: string;
@@ -223,6 +223,31 @@ function getPeriodPromptValue(settings: ChatSettings) {
   }
 
   return settings.period;
+}
+
+function getBackendPeriodLabel(settings: ChatSettings) {
+  if (!settings.period) return "";
+
+  if (settings.period === "年度") {
+    return settings.periodYear ? `${settings.periodYear}年度` : "年度";
+  }
+
+  if (settings.period === "季度") {
+    if (settings.periodYear && settings.periodQuarter) {
+      return `${settings.periodYear}年${settings.periodQuarter}`;
+    }
+    return "季度";
+  }
+
+  return settings.period;
+}
+
+function buildDirectChatApiUrl() {
+  const baseUrl = process.env.NEXT_PUBLIC_CHATBOT_API_BASE_URL;
+  if (!baseUrl) return null;
+
+  const path = process.env.NEXT_PUBLIC_CHATBOT_API_CHAT_PATH ?? "/chat";
+  return `${baseUrl.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 function formatQuestionWithContext(question: string, settings: ChatSettings) {
@@ -819,7 +844,7 @@ export function ChatWindow(props: {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(true);
-  const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
+  const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(true);
   const [settings, setSettings] = useState<ChatSettings>(createEmptySettings());
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -898,6 +923,7 @@ export function ChatWindow(props: {
 
   const activeMessages = activeSession?.messages ?? [];
   const selectedConditionSummary = getSelectedConditionSummary(settings);
+  const directChatApiUrl = buildDirectChatApiUrl();
   const openSidePanelsCount = Number(isHistoryPanelOpen) + Number(isSettingsPanelOpen);
   const contentMaxWidthClass =
     openSidePanelsCount === 2
@@ -988,14 +1014,18 @@ export function ChatWindow(props: {
     abortControllerRef.current = controller;
 
     try {
-      const response = await fetch(props.endpoint, {
+      const response = await fetch(directChatApiUrl ?? props.endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json, text/plain",
         },
         body: JSON.stringify({
-          messages: requestMessages,
+          question: requestMessages[requestMessages.length - 1]?.content?.toString() ?? "",
+          company: settings.company ?? "",
+          period: getBackendPeriodLabel(settings),
           conversationId: activeSessionId,
+          messages: requestMessages,
           settings,
           show_intermediate_steps: showIntermediateSteps,
         }),
@@ -1014,6 +1044,32 @@ export function ChatWindow(props: {
         setDataSourcesForMessages({
           [assistantMessageId]: parseBase64JsonHeader<any[]>(dataSourcesHeader),
         });
+      }
+
+      const contentType = response.headers.get("content-type") ?? "";
+      if (contentType.includes("application/json")) {
+        const json = await response.json();
+        const assistantContent =
+          typeof json?.answer === "string"
+            ? json.answer
+            : typeof json?.message === "string"
+              ? json.message
+              : JSON.stringify(json);
+        const dataSources = Array.isArray(json?.data_sources) ? json.data_sources : [];
+
+        if (!dataSourcesHeader && dataSources.length > 0) {
+          setDataSourcesForMessages({
+            [assistantMessageId]: dataSources,
+          });
+        }
+
+        const finalMessages = requestMessages.concat({
+          id: assistantMessageId,
+          role: "assistant",
+          content: assistantContent,
+        });
+        replaceActiveSession(finalMessages);
+        return;
       }
 
       const reader = response.body?.getReader();

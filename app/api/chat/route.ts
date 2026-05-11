@@ -5,13 +5,17 @@ import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { HttpResponseOutputParser } from "langchain/output_parsers";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
+export const maxDuration = 180;
 
 const EXTERNAL_CHAT_API_BASE_URL = process.env.CHATBOT_API_BASE_URL;
 const EXTERNAL_CHAT_API_MODE = process.env.CHATBOT_API_MODE ?? "post_json";
 const EXTERNAL_CHAT_API_CHAT_PATH =
   process.env.CHATBOT_API_CHAT_PATH ??
   "/chat";
+const EXTERNAL_CHAT_API_TIMEOUT_MS = Number(
+  process.env.CHATBOT_API_TIMEOUT_MS ?? "180000",
+);
 const DATA_SOURCES_HEADER = "x-data-sources";
 
 const formatMessage = (message: VercelChatMessage) => {
@@ -66,12 +70,15 @@ async function proxyToBackend(body: any) {
     messages,
   };
 
+  console.log("POST /chatbot backendPayload:", JSON.stringify(backendPayload, null, 2));
+
   const response = await fetch(
     buildExternalApiUrl(
       EXTERNAL_CHAT_API_BASE_URL,
       EXTERNAL_CHAT_API_CHAT_PATH,
     ),
     {
+      signal: AbortSignal.timeout(EXTERNAL_CHAT_API_TIMEOUT_MS),
       method: "POST",
       headers: {
         "Content-Type": "application/json",
