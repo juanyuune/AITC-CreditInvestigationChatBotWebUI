@@ -22,6 +22,7 @@ import { IntermediateStep } from "./IntermediateStep";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { UploadDocumentsForm } from "./UploadDocumentsForm";
+import { KnowledgeBaseManager } from "./KnowledgeBaseManager";
 import {
   Dialog,
   DialogContent,
@@ -59,146 +60,32 @@ type ChatSession = {
 };
 
 const COMPANY_OPTIONS: CompanyOption[] = [
-  {
-    label: "士林電機廠股份有限公司 / 1503 / 士電",
-    promptValue: "士林電機廠股份有限公司(1503.TW)",
-  },
-  {
-    label: "正道工業股份有限公司 / 1506 / 正道",
-    promptValue: "正道工業股份有限公司(1506.TW)",
-  },
-  {
-    label: "杏輝藥品工業股份有限公司 / 1734 / 杏輝",
-    promptValue: "杏輝藥品工業股份有限公司(1734.TW)",
-  },
-  {
-    label: "聯華電子股份有限公司 / 2303 / 聯電",
-    promptValue: "聯華電子股份有限公司(2303.TW)",
-  },
-  {
-    label: "華邦電子股份有限公司 / 2344 / 華邦電",
-    promptValue: "華邦電子股份有限公司(2344.TW)",
-  },
-  {
-    label: "佳能企業股份有限公司 / 2374 / 佳能",
-    promptValue: "佳能企業股份有限公司(2374.TW)",
-  },
-  {
-    label: "億光電子工業股份有限公司 / 2393 / 億光",
-    promptValue: "億光電子工業股份有限公司(2393.TW)",
-  },
-  {
-    label: "晶華國際酒店股份有限公司 / 2707 / 晶華",
-    promptValue: "晶華國際酒店股份有限公司(2707.TW)",
-  },
-  {
-    label: "雄獅旅行社股份有限公司 / 2731 / 雄獅",
-    promptValue: "雄獅旅行社股份有限公司(2731.TW)",
-  },
-  {
-    label: "全宇生技控股有限公司 / 4148 / 全宇生技-KY",
-    promptValue: "全宇生技控股有限公司(4148.TW)",
-  },
-  {
-    label: "臺灣水泥股份有限公司 / 1101 / 台泥",
-    promptValue: "臺灣水泥股份有限公司(1101.TW)",
-  },
-  {
-    label: "新光產物保險股份有限公司 / 2850 / 新產",
-    promptValue: "新光產物保險股份有限公司(2850.TW)",
-  },
-  {
-    label: "中央再保險股份有限公司 / 2851 / 中再保",
-    promptValue: "中央再保險股份有限公司(2851.TW)",
-  },
-  {
-    label: "第一產物保險股份有限公司 / 2852 / 第一保",
-    promptValue: "第一產物保險股份有限公司(2852.TW)",
-  },
-  {
-    label: "三商美邦人壽保險股份有限公司 / 2867 / 三商壽",
-    promptValue: "三商美邦人壽保險股份有限公司(2867.TW)",
-  },
-  {
-    label: "兆豐產物保險股份有限公司 / 5834 / 兆豐保險",
-    promptValue: "兆豐產物保險股份有限公司(5834.TW)",
-  },
-  {
-    label: "新光人壽保險股份有限公司 / 6985 / 台新人壽",
-    promptValue: "新光人壽保險股份有限公司(6985.TW)",
-  },
-  {
-    label: "新光合成纖維股份有限公司 / 1409 / 新纖",
-    promptValue: "新光合成纖維股份有限公司(1409.TW)",
-  },
-  {
-    label: "中國人造纖維股份有限公司 / 1718 / 中纖",
-    promptValue: "中國人造纖維股份有限公司(1718.TW)",
-  },
-  {
-    label: "和泰汽車股份有限公司 / 2207 / 和泰車",
-    promptValue: "和泰汽車股份有限公司(2207.TW)",
-  },
-  {
-    label: "三商投資控股股份有限公司 / 2905 / 三商",
-    promptValue: "三商投資控股股份有限公司(2905.TW)",
-  },
-  {
-    label: "華新麗華股份有限公司 / 1605 / 華新",
-    promptValue: "華新麗華股份有限公司(1605.TW)",
-  },
-  {
-    label: "中華電信股份有限公司 / 2412 / 中華電",
-    promptValue: "中華電信股份有限公司(2412.TW)",
-  },
-  {
-    label: "揚智科技股份有限公司 / 3041 / 揚智",
-    promptValue: "揚智科技股份有限公司(3041.TW)",
-  },
-  {
-    label: "聯鈞光電股份有限公司 / 3450 / 聯鈞",
-    promptValue: "聯鈞光電股份有限公司(3450.TW)",
-  },
-  {
-    label: "鑫科材料科技股份有限公司 / 3663 / 鑫科",
-    promptValue: "鑫科材料科技股份有限公司(3663.TW)",
-  },
-  {
-    label: "安馳科技股份有限公司 / 3528 / 安馳",
-    promptValue: "安馳科技股份有限公司(3528.TW)",
-  },
-  {
-    label: "基泰建設股份有限公司 / 2538 / 基泰",
-    promptValue: "基泰建設股份有限公司(2538.TW)",
-  },
-  {
-    label: "東元電機股份有限公司 / 1504 / 東元",
-    promptValue: "東元電機股份有限公司(1504.TW)",
-  },
-  {
-    label: "誠美材料科技股份有限公司 / 4960 / 誠美材",
-    promptValue: "誠美材料科技股份有限公司(4960.TW)",
-  },
-  {
-    label: "葡萄王生技股份有限公司 / 1707 / 葡萄王",
-    promptValue: "葡萄王生技股份有限公司(1707.TW)",
-  },
-  {
-    label: "山富國際旅行社股份有限公司 / 2743 / 山富",
-    promptValue: "山富國際旅行社股份有限公司(2743.TW)",
-  },
-  {
-    label: "群創光電股份有限公司 / 3481 / 群創",
-    promptValue: "群創光電股份有限公司(3481.TW)",
-  },
-  {
-    label: "世界先進積體電路股份有限公司 / 5347 / 世界",
-    promptValue: "世界先進積體電路股份有限公司(5347.TW)",
-  },
-  {
-    label: "台灣積體電路製造股份有限公司 / 2330 / 台積電",
-    promptValue: "台灣積體電路製造股份有限公司(2330.TW)",
-  },
+  { label: "彰化商業銀行股份有限公司 / 2801 / 彰銀", promptValue: "彰化商業銀行股份有限公司(2801.TW)" },
+  { label: "京城商業銀行股份有限公司 / 2809 / 京城銀", promptValue: "京城商業銀行股份有限公司(2809.TW)" },
+  { label: "台中商業銀行股份有限公司 / 2812 / 台中銀", promptValue: "台中商業銀行股份有限公司(2812.TW)" },
+  { label: "臺灣企業銀行股份有限公司 / 2834 / 臺企銀", promptValue: "臺灣企業銀行股份有限公司(2834.TW)" },
+  { label: "聯邦商業銀行股份有限公司 / 2838 / 聯邦銀", promptValue: "聯邦商業銀行股份有限公司(2838.TW)" },
+  { label: "遠東國際商業銀行股份有限公司 / 2845 / 遠東銀", promptValue: "遠東國際商業銀行股份有限公司(2845.TW)" },
+  { label: "新光產物保險股份有限公司 / 2850 / 新產", promptValue: "新光產物保險股份有限公司(2850.TW)" },
+  { label: "中央再保險股份有限公司 / 2851 / 中再保", promptValue: "中央再保險股份有限公司(2851.TW)" },
+  { label: "第一產物保險股份有限公司 / 2852 / 第一保", promptValue: "第一產物保險股份有限公司(2852.TW)" },
+  { label: "三商美邦人壽保險股份有限公司 / 2867 / 三商壽", promptValue: "三商美邦人壽保險股份有限公司(2867.TW)" },
+  { label: "華南金融控股股份有限公司 / 2880 / 華南金", promptValue: "華南金融控股股份有限公司(2880.TW)" },
+  { label: "富邦金融控股股份有限公司 / 2881 / 富邦金", promptValue: "富邦金融控股股份有限公司(2881.TW)" },
+  { label: "國泰金融控股股份有限公司 / 2882 / 國泰金", promptValue: "國泰金融控股股份有限公司(2882.TW)" },
+  { label: "開發金融控股股份有限公司 / 2883 / 開發金", promptValue: "開發金融控股股份有限公司(2883.TW)" },
+  { label: "玉山金融控股股份有限公司 / 2884 / 玉山金", promptValue: "玉山金融控股股份有限公司(2884.TW)" },
+  { label: "元大金融控股股份有限公司 / 2885 / 元大金", promptValue: "元大金融控股股份有限公司(2885.TW)" },
+  { label: "兆豐金融控股股份有限公司 / 2886 / 兆豐金", promptValue: "兆豐金融控股股份有限公司(2886.TW)" },
+  { label: "台新金融控股股份有限公司 / 2887 / 台新金", promptValue: "台新金融控股股份有限公司(2887.TW)" },
+  { label: "新光金融控股股份有限公司 / 2888 / 新光金", promptValue: "新光金融控股股份有限公司(2888.TW)" },
+  { label: "國票金融控股股份有限公司 / 2889 / 國票金", promptValue: "國票金融控股股份有限公司(2889.TW)" },
+  { label: "永豐金融控股股份有限公司 / 2890 / 永豐金", promptValue: "永豐金融控股股份有限公司(2890.TW)" },
+  { label: "中國信託金融控股股份有限公司 / 2891 / 中信金", promptValue: "中國信託金融控股股份有限公司(2891.TW)" },
+  { label: "第一金融控股股份有限公司 / 2892 / 第一金", promptValue: "第一金融控股股份有限公司(2892.TW)" },
+  { label: "三商投資控股股份有限公司 / 2905 / 三商", promptValue: "三商投資控股股份有限公司(2905.TW)" },
+  { label: "合庫金融控股股份有限公司 / 5834 / 合庫金", promptValue: "合庫金融控股股份有限公司(5834.TW)" },
+  { label: "上海商業儲蓄銀行股份有限公司 / 5876 / 上海商銀", promptValue: "上海商業儲蓄銀行股份有限公司(5876.TW)" },
 ];
 
 function getCompanyPromptValue(companyLabel: string) {
@@ -1014,23 +901,39 @@ export function ChatWindow(props: {
     abortControllerRef.current = controller;
 
     try {
-      const response = await fetch(directChatApiUrl ?? props.endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json, text/plain",
-        },
-        body: JSON.stringify({
-          question: requestMessages[requestMessages.length - 1]?.content?.toString() ?? "",
-          company: settings.company ?? "",
-          period: getBackendPeriodLabel(settings),
-          conversationId: activeSessionId,
-          messages: requestMessages,
-          settings,
-          show_intermediate_steps: showIntermediateSteps,
-        }),
-        signal: controller.signal,
-      });
+      // ── Direct FastAPI call ──────────────────────────────────
+      const question = requestMessages[requestMessages.length - 1]?.content?.toString() ?? "";
+      const backendBase = process.env.NEXT_PUBLIC_CHATBOT_API_BASE_URL ?? "";
+      let response: Response;
+
+      if (backendBase) {
+        // Call FastAPI directly: GET /chatbot/{question}
+        const encoded = encodeURIComponent(question.trim());
+        response = await fetch(`${backendBase}/chatbot/${encoded}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+        });
+      } else {
+        // Fallback to Next.js proxy
+        response = await fetch(props.endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json, text/plain",
+          },
+          body: JSON.stringify({
+            question,
+            company: settings.company ?? "",
+            period: getBackendPeriodLabel(settings),
+            conversationId: activeSessionId,
+            messages: requestMessages,
+            settings,
+            show_intermediate_steps: showIntermediateSteps,
+          }),
+          signal: controller.signal,
+        });
+      }
 
       if (!response.ok) {
         const error = await response.text();

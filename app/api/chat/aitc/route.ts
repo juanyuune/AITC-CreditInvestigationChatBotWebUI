@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       {
         method: "GET",
         headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(600_000),
+        signal: AbortSignal.timeout(180_000),
       }
     );
 
