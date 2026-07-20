@@ -44,7 +44,6 @@ type ChatSettings = {
   periodYear: string;
   periodQuarter: string;
   statementType: string;
-  selectedModel: string;
 };
 
 type CompanyOption = {
@@ -152,21 +151,16 @@ function formatQuestionWithContext(question: string, settings: ChatSettings) {
 function getSelectedConditionSummary(settings: ChatSettings) {
   const company = getCompanyPromptValue(settings.company);
   const period = getPeriodPromptValue(settings);
-  const modelMap: Record<string, string> = {
-    qwen: "Qwen 2.5 · 14B",
-    finr1: "Fin-R1 · 7B",
-    mengzi: "Mengzi-BERT-fin",
-    claude: "Claude Sonnet 4.6",
-  };
-  const modelLabel = modelMap[settings.selectedModel ?? "qwen"] ?? "Qwen 2.5 · 14B";
 
   if (!company && !period) {
-    return `${modelLabel} · 未套用公司與期間條件`;
+    return "目前未套用公司與期間條件";
   }
+
   if (company && period) {
-    return `${modelLabel} · ${company} / ${period}`;
+    return `目前條件：${company} / ${period}`;
   }
-  return `${modelLabel} · 條件未完整`;
+
+  return "目前條件未完整，送出時將使用原始問題";
 }
 
 function createEmptySettings(): ChatSettings {
@@ -176,7 +170,6 @@ function createEmptySettings(): ChatSettings {
     periodYear: "",
     periodQuarter: "",
     statementType: "",
-    selectedModel: "qwen",
   };
 }
 
@@ -339,9 +332,6 @@ export function ChatInput(props: {
   children?: ReactNode;
   className?: string;
   actions?: ReactNode;
-  modelSelector?: ReactNode;
-  loadingStep?: string;
-  loadingElapsed?: number;
 }) {
   const disabled = props.loading ? false : props.value.trim().length === 0;
 
@@ -364,14 +354,6 @@ export function ChatInput(props: {
           value={props.value}
           placeholder={props.placeholder}
           onChange={props.onChange}
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-              e.preventDefault();
-              const form = e.currentTarget.closest("form");
-              if (form) form.requestSubmit();
-            }
-          }}
           className="border-none outline-none bg-transparent p-4"
         />
 
@@ -398,8 +380,6 @@ export function ChatInput(props: {
           </div>
         </div>
       </div>
-
-
     </form>
   );
 }
@@ -518,19 +498,7 @@ function ConversationHistory(props: {
                 {session.title}
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
-                {(() => {
-                  const date = new Date(session.updatedAt);
-                  const now = new Date();
-                  const diffMin = Math.floor((now.getTime() - date.getTime()) / 60000);
-                  const diffHr = Math.floor(diffMin / 60);
-                  const diffDay = Math.floor(diffHr / 24);
-                  if (diffMin < 1) return "剛才";
-                  if (diffMin < 60) return `${diffMin}分鐘前`;
-                  if (diffHr < 24) return `${diffHr}小時前`;
-                  if (diffDay === 1) return "昨天";
-                  if (diffDay < 7) return `${diffDay}天前`;
-                  return date.toLocaleDateString("zh-TW", { month: "numeric", day: "numeric" });
-                })()}
+                {new Date(session.updatedAt).toLocaleString("zh-TW")}
               </div>
             </button>
           ))}
@@ -603,7 +571,7 @@ function SettingsPanel(props: {
       <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-4">
         <div>
           <div className="text-sm font-semibold">查詢設定</div>
-          <div className="text-xs text-muted-foreground">選擇公司、期間、模型</div>
+          <div className="text-xs text-muted-foreground">選擇公司、期間</div>
         </div>
         {props.onToggleCollapse ? (
           <Button
@@ -698,39 +666,6 @@ function SettingsPanel(props: {
           ) : null}
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">模型選擇器</label>
-          <select
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
-            value={props.value.selectedModel}
-            onChange={(event) => props.onChange({ ...props.value, selectedModel: event.target.value })}
-          >
-            <option value="qwen">Qwen 2.5 · 14B — 數據查詢</option>
-            <option value="finr1">Fin-R1 · 7B — 財務計算</option>
-            <option value="mengzi">Mengzi-BERT-fin — 快速分類</option>
-            <option value="claude">Claude Sonnet 4.6 — 深度分析</option>
-          </select>
-          {[
-            { id: "qwen", emoji: "", label: "Qwen 2.5 · 14B", labelZh: "數據查詢", tagline: "精確查詢 XBRL 財務數據，多期比較、跨公司對照", functions: ["XBRL 數值查詢", "多期間比較", "跨公司同指標"] },
-            { id: "finr1", emoji: "", label: "Fin-R1 · 7B", labelZh: "財務計算", tagline: "ROA/ROE 計算、比率分析、法規合規、異常偵測", functions: ["ROA / ROE 計算", "負債比率分析", "FSC 法規合規判斷"] },
-            { id: "mengzi", emoji: "", label: "Mengzi-BERT-fin", labelZh: "快速分類", tagline: "財務健康評估（偏高/偏低/正常）、FHC 適用性篩查", functions: ["健康狀態分類", "FHC 適用性篩查", "<100ms 快速回應"] },
-            { id: "claude", emoji: "", label: "Claude Sonnet 4.6", labelZh: "深度分析", tagline: "完整信用報告、壓力測試情境、多期趨勢、風險排序", functions: ["完整信用報告", "壓力測試情境", "風險指標排序"] },
-          ].filter((m) => m.id === props.value.selectedModel).map((model) => (
-            <div key={model.id} className="rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-xs space-y-1.5">
-              <div className="font-medium text-foreground">{model.label} · {model.labelZh}</div>
-              <p className="text-muted-foreground leading-relaxed">{model.tagline}</p>
-              <div className="space-y-1 pt-0.5">
-                {model.functions.map((fn) => (
-                  <div key={fn} className="flex items-center gap-1.5">
-                    <span className="h-1 w-1 flex-shrink-0 rounded-full bg-muted-foreground/60" />
-                    <span className="text-muted-foreground">{fn}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-sm leading-6 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
           <div className="font-semibold">查詢設定說明</div>
           <div className="mt-1">
@@ -798,8 +733,6 @@ export function ChatWindow(props: {
   const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(true);
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(true);
   const [settings, setSettings] = useState<ChatSettings>(createEmptySettings());
-  const [loadingStep, setLoadingStep] = useState<string>("");
-  const [loadingElapsed, setLoadingElapsed] = useState<number>(0);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -976,11 +909,9 @@ export function ChatWindow(props: {
       if (backendBase) {
         // Call FastAPI directly: GET /chatbot/{question}
         const encoded = encodeURIComponent(question.trim());
-        const mode = settings.selectedModel ?? "qwen";
-        response = await fetch(`${backendBase}/chatbot`, {
-          method: "POST",
+        response = await fetch(`${backendBase}/chatbot/${encoded}`, {
+          method: "GET",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question, mode }),
           signal: controller.signal,
         });
       } else {
@@ -1086,12 +1017,6 @@ export function ChatWindow(props: {
       abortControllerRef.current = null;
       setIsLoading(false);
       setIntermediateStepsLoading(false);
-      setLoadingStep("");
-      setLoadingElapsed(0);
-      if ((window as any)._loadingTimer) {
-        clearInterval((window as any)._loadingTimer);
-        (window as any)._loadingTimer = null;
-      }
     }
   }
 
@@ -1258,7 +1183,7 @@ export function ChatWindow(props: {
                 <DialogContent className="p-0 sm:max-w-md">
                   <DialogHeader className="px-6 pt-6">
                     <DialogTitle>查詢設定</DialogTitle>
-                    <DialogDescription>選擇公司、期間、模型</DialogDescription>
+                    <DialogDescription>選擇公司、期間</DialogDescription>
                   </DialogHeader>
                   <div className="h-[60vh]">
                     <SettingsPanel
@@ -1296,8 +1221,6 @@ export function ChatWindow(props: {
                 loading={isLoading || intermediateStepsLoading}
                 placeholder={props.placeholder}
                 className={contentMaxWidthClass}
-                loadingStep={loadingStep}
-                loadingElapsed={loadingElapsed}
               >
                 {props.showIntermediateStepsToggle && (
                   <>

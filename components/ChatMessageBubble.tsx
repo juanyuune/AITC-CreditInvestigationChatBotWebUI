@@ -6,6 +6,27 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { ChevronDown, Copy, Lock, Cloud, Zap } from "lucide-react";
 
+function renderMath(text: string): string {
+  return text
+    .replace(/\\\[[\s\S]*?\\\]/g, (match) => `<div class="math-block">${match.slice(2,-2).trim()}</div>`)
+    .replace(/\\\([\s\S]*?\\\)/g, (match) => `<span class="math-inline">${match.slice(2,-2).trim()}</span>`);
+}
+
+function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHr = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffMin < 1) return "剛才";
+  if (diffMin < 60) return `${diffMin}分鐘前`;
+  if (diffHr < 24) return `${diffHr}小時前`;
+  if (diffDay === 1) return "昨天";
+  if (diffDay < 7) return `${diffDay}天前`;
+  return date.toLocaleDateString("zh-TW", { month: "numeric", day: "numeric" });
+}
+
 function renderBoldMarkdown(content: string) {
   const parts = [];
   let currentIndex = 0;
@@ -91,6 +112,22 @@ export function ChatMessageBubble(props: {
         "flex rounded-[24px]",
         props.message.role === "user" ? "bg-secondary px-4 py-2 text-secondary-foreground" : null,
       )}>
+        {props.message.role === "assistant" && !isThinking && dispatchMeta && (
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground">
+              {dispatchMeta.dispatch_decision === "private" ? "🔒" : "☁️"}
+              {dispatchMeta.model ?? "Qwen"}
+              {dispatchMeta.response_time_seconds && (
+                <span className="text-muted-foreground/60">· {dispatchMeta.response_time_seconds}s</span>
+              )}
+            </span>
+            {props.dataSources?.filter((s) => !s._aitc_meta && s.source).slice(0,1).map((src, i) => (
+              <span key={i} className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/30 px-2 py-0.5 text-xs text-muted-foreground">
+                📋 {src.source}{src.title ? ` · ${src.title.slice(0,20)}` : ""}
+              </span>
+            ))}
+          </div>
+        )}
         {props.message.role !== "user" && (
           <div className="mr-4 border bg-secondary -mt-2 rounded-full w-10 h-10 flex-shrink-0 flex items-center justify-center">
             {props.aiEmoji}
