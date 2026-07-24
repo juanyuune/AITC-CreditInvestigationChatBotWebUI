@@ -264,7 +264,18 @@ function formatConversationForCopy(messages: Message[]) {
 
 async function copyText(text: string, successMessage: string) {
   try {
-    await navigator.clipboard.writeText(text);
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none;";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
     toast.success(successMessage);
   } catch {
     toast.error("複製失敗");
@@ -280,6 +291,10 @@ function ChatMessages(props: {
   className?: string;
   onCopyMessage: (message: Message) => void;
   onSelectPresetQuestion: (question: string) => void;
+  loadingStep?: string;
+  loadingElapsed?: number;
+  company?: string;
+  period?: string;
 }) {
   return (
     <div className={cn("flex flex-col mx-auto pb-12 w-full", props.className)}>
@@ -322,6 +337,11 @@ function ChatMessages(props: {
             aiEmoji={props.aiEmoji}
             dataSources={props.dataSourcesForMessages[message.id] ?? []}
             onCopy={props.onCopyMessage}
+            loadingStep={props.loadingStep}
+            loadingElapsed={props.loadingElapsed}
+            company={props.company}
+            period={props.period}
+            reportId={(message as any).report_id ?? ""}
           />
         );
       })}
@@ -466,6 +486,7 @@ function ConversationHistory(props: {
   activeSessionId: string | null;
   onSelect: (sessionId: string) => void;
   onCreate: () => void;
+  onDelete: (sessionId: string) => void;
   className?: string;
   onToggleCollapse?: () => void;
 }) {
@@ -503,36 +524,53 @@ function ConversationHistory(props: {
 
         <div className="space-y-2">
           {props.sessions.map((session) => (
-            <button
+            <div
               key={session.id}
-              type="button"
-              onClick={() => props.onSelect(session.id)}
               className={cn(
-                "mx-auto w-full max-w-[262px] overflow-hidden rounded-lg border px-3 py-3 text-left transition-colors",
+                "group mx-auto flex w-full max-w-[262px] items-start overflow-hidden rounded-lg border transition-colors",
                 session.id === props.activeSessionId
                   ? "border-primary bg-background"
                   : "border-transparent bg-background/60 hover:border-border",
               )}
             >
-              <div className="line-clamp-2 break-words text-sm font-medium leading-5">
-                {session.title}
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                {(() => {
-                  const date = new Date(session.updatedAt);
-                  const now = new Date();
-                  const diffMin = Math.floor((now.getTime() - date.getTime()) / 60000);
-                  const diffHr = Math.floor(diffMin / 60);
-                  const diffDay = Math.floor(diffHr / 24);
-                  if (diffMin < 1) return "剛才";
-                  if (diffMin < 60) return `${diffMin}分鐘前`;
-                  if (diffHr < 24) return `${diffHr}小時前`;
-                  if (diffDay === 1) return "昨天";
-                  if (diffDay < 7) return `${diffDay}天前`;
-                  return date.toLocaleDateString("zh-TW", { month: "numeric", day: "numeric" });
-                })()}
-              </div>
-            </button>
+              <button
+                type="button"
+                onClick={() => props.onSelect(session.id)}
+                className="flex-1 overflow-hidden px-3 py-3 text-left"
+              >
+                <div className="line-clamp-2 break-words text-sm font-medium leading-5">
+                  {session.title}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {(() => {
+                    const date = new Date(session.updatedAt);
+                    const now = new Date();
+                    const diffMin = Math.floor((now.getTime() - date.getTime()) / 60000);
+                    const diffHr = Math.floor(diffMin / 60);
+                    const diffDay = Math.floor(diffHr / 24);
+                    if (diffMin < 1) return "剛才";
+                    if (diffMin < 60) return `${diffMin}分鐘前`;
+                    if (diffHr < 24) return `${diffHr}小時前`;
+                    if (diffDay === 1) return "昨天";
+                    if (diffDay < 7) return `${diffDay}天前`;
+                    return date.toLocaleDateString("zh-TW", { month: "numeric", day: "numeric" });
+                  })()}
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (window.confirm("確定刪除此對話？")) props.onDelete(session.id);
+                }}
+                className="flex-shrink-0 self-center px-2 py-2 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-400"
+                title="刪除對話"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                </svg>
+              </button>
+            </div>
           ))}
         </div>
       </div>
@@ -595,6 +633,7 @@ function SettingsPanel(props: {
   onChange: (nextValue: ChatSettings) => void;
   className?: string;
   onToggleCollapse?: () => void;
+  onExampleClick?: (example: string) => void;
 }) {
   const quarterOptions = ["Q1", "Q2", "Q3", "Q4"];
 
@@ -618,7 +657,7 @@ function SettingsPanel(props: {
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col gap-5 p-4">
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 scrollbar-thin">
         <div className="space-y-2">
           <label className="text-sm font-medium">公司選擇器</label>
           <select
@@ -710,44 +749,51 @@ function SettingsPanel(props: {
             <option value="mengzi">Mengzi-BERT-fin — 快速分類</option>
             <option value="claude">Claude Sonnet 4.6 — 深度分析</option>
           </select>
-          {[
-            { id: "qwen", emoji: "", label: "Qwen 2.5 · 14B", labelZh: "數據查詢", tagline: "精確查詢 XBRL 財務數據，多期比較、跨公司對照", functions: ["XBRL 數值查詢", "多期間比較", "跨公司同指標"] },
-            { id: "finr1", emoji: "", label: "Fin-R1 · 7B", labelZh: "財務計算", tagline: "ROA/ROE 計算、比率分析、法規合規、異常偵測", functions: ["ROA / ROE 計算", "負債比率分析", "FSC 法規合規判斷"] },
-            { id: "mengzi", emoji: "", label: "Mengzi-BERT-fin", labelZh: "快速分類", tagline: "財務健康評估（偏高/偏低/正常）、FHC 適用性篩查", functions: ["健康狀態分類", "FHC 適用性篩查", "<100ms 快速回應"] },
-            { id: "claude", emoji: "", label: "Claude Sonnet 4.6", labelZh: "深度分析", tagline: "完整信用報告、壓力測試情境、多期趨勢、風險排序", functions: ["完整信用報告", "壓力測試情境", "風險指標排序"] },
-          ].filter((m) => m.id === props.value.selectedModel).map((model) => (
-            <div key={model.id} className="rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-xs space-y-1.5">
-              <div className="font-medium text-foreground">{model.label} · {model.labelZh}</div>
-              <p className="text-muted-foreground leading-relaxed">{model.tagline}</p>
-              <div className="space-y-1 pt-0.5">
-                {model.functions.map((fn) => (
-                  <div key={fn} className="flex items-center gap-1.5">
-                    <span className="h-1 w-1 flex-shrink-0 rounded-full bg-muted-foreground/60" />
-                    <span className="text-muted-foreground">{fn}</span>
-                  </div>
-                ))}
+          {/* Model description card — updates on selection */}
+          {(() => {
+            const MODEL_INFO: Record<string, { border: string; bg: string; badge: string; label: string; job: string; examples: string[] }> = {
+              qwen:   { border: "border-blue-500/30", bg: "bg-blue-500/5", badge: "bg-blue-500/20 text-blue-300 border border-blue-500/30", label: "數據查詢", job: "查詢 XBRL 財務數值與多期比較", examples: ["兆豐金 2024Q3 負債比率", "富邦金近三年資產規模", "國泰金 EPS"] },
+              finr1:  { border: "border-green-500/30", bg: "bg-green-500/5", badge: "bg-green-500/20 text-green-300 border border-green-500/30", label: "財務計算", job: "計算財務比率並判斷 FSC 合規狀態", examples: ["兆豐金 ROA 是否達標", "富邦金負債比率風險等級", "國泰金流動比率評估"] },
+              mengzi: { border: "border-amber-500/30", bg: "bg-amber-500/5", badge: "bg-amber-500/20 text-amber-300 border border-amber-500/30", label: "快速分類", job: "快速判斷財務健康狀態（偏高／正常／偏低）", examples: ["負債比率 91% 是否偏高", "EPS 1.98 元正常嗎", "流動比率 1.2 倍分類"] },
+              claude: { border: "border-violet-500/30", bg: "bg-violet-500/5", badge: "bg-violet-500/20 text-violet-300 border border-violet-500/30", label: "深度分析", job: "出具完整 FSC 信用調查報告", examples: ["富邦金 2024Q3 信用調查報告", "國泰金財務風險評估", "兆豐金三期趨勢分析"] },
+            };
+            const m = MODEL_INFO[props.value.selectedModel];
+            if (!m) return null;
+            return (
+              <div className={"rounded-lg border p-3 space-y-3 " + m.border + " " + m.bg}>
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <span className={"rounded px-2 py-0.5 text-[10px] font-semibold tracking-wide " + m.badge}>
+                    {m.label}
+                  </span>
+                  <span className="text-[10px] text-foreground/30 font-mono">Agent</span>
+                </div>
+                {/* Job description */}
+                <p className="text-[11px] text-foreground/75 leading-relaxed">{m.job}</p>
+                {/* Divider */}
+                <div className="border-t border-white/5" />
+                {/* Example questions */}
+                <div className="space-y-1">
+                  <p className="text-[10px] font-medium text-foreground/40 uppercase tracking-widest mb-2">範例問題</p>
+                  {m.examples.map((ex: string) => (
+                    <button
+                      key={ex}
+                      type="button"
+                      onClick={() => props.onExampleClick?.(ex)}
+                      className={"w-full flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-[11px] text-foreground/55 transition-all duration-150 hover:text-foreground/90 hover:" + m.bg + " hover:border hover:" + m.border + " border border-transparent"}
+                    >
+                      <span className="flex-shrink-0 w-1 h-1 rounded-full bg-foreground/25 mt-px" />
+                      <span className="leading-snug">{ex}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })()}
+          
         </div>
 
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-sm leading-6 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
-          <div className="font-semibold">查詢設定說明</div>
-          <div className="mt-1">
-            若已選擇公司與區間，送出對話時系統會自動將公司與時間加到問題前綴，再發送至AI Agent。
-          </div>
-          <div className="mt-2 rounded-md bg-white/70 px-2 py-2 text-xs leading-6 dark:bg-black/20">
-            範例：
-            <br />
-            選擇「臺灣水泥股份有限公司」與「2024年度」後，
-            <br />
-            問題「獲利能力與負債結構是否有風險？」
-            <br />
-            會送出成
-            <br />
-            「臺灣水泥股份有限公司(1101.TW) 2024年度獲利能力與負債結構是否有風險？」
-          </div>
-        </div>
+
 
         {/* <div className="space-y-2">
           <label className="text-sm font-medium">財報類型選擇</label>
@@ -963,6 +1009,20 @@ export function ChatWindow(props: {
     setIsLoading(true);
     setIntermediateStepsLoading(true);
     setDataSourcesForMessages({});
+    setLoadingStep("分析問題中...");
+    setLoadingElapsed(0);
+    const _loadStart = Date.now();
+    const _elapsedTimer = setInterval(() => {
+      setLoadingElapsed(Math.floor((Date.now() - _loadStart) / 1000));
+    }, 1000);
+    const _stepTimeouts = [
+      setTimeout(() => setLoadingStep("識別財務報表類型..."), 3000),
+      setTimeout(() => setLoadingStep("查詢 XBRL 資料庫..."), 8000),
+      setTimeout(() => setLoadingStep("比對財務欄位..."), 20000),
+      setTimeout(() => setLoadingStep("生成回答..."), 45000),
+    ];
+    (window as any)._loadingTimer = _elapsedTimer;
+    (window as any)._stepTimeouts = _stepTimeouts;
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -1092,6 +1152,14 @@ export function ChatWindow(props: {
         clearInterval((window as any)._loadingTimer);
         (window as any)._loadingTimer = null;
       }
+      if ((window as any)._stepTimeouts) {
+        ((window as any)._stepTimeouts as ReturnType<typeof setTimeout>[]).forEach(clearTimeout);
+        (window as any)._stepTimeouts = null;
+      }
+      if ((window as any)._stepTimeouts) {
+        (window as any)._stepTimeouts.forEach((t: any) => clearTimeout(t));
+        (window as any)._stepTimeouts = null;
+      }
     }
   }
 
@@ -1130,6 +1198,24 @@ export function ChatWindow(props: {
     await streamAssistantReply(nextMessages);
   }
 
+  function deleteSession(sessionId: string) {
+    setSessions((prev) => {
+      const next = prev.filter((s) => s.id !== sessionId);
+      persistSessions(next);
+      // If deleting active session, switch to first remaining or create new
+      if (sessionId === activeSessionId) {
+        if (next.length > 0) {
+          setActiveSessionId(next[0].id);
+        } else {
+          const newSession = createEmptySession();
+          persistSessions([newSession]);
+          setSessions([newSession]);
+          setActiveSessionId(newSession.id);
+        }
+      }
+      return next;
+    });
+  }
   function handleCopyMessage(message: Message) {
     copyText(message.content, "已複製回答");
   }
@@ -1156,6 +1242,7 @@ export function ChatWindow(props: {
             activeSessionId={activeSessionId}
             onSelect={selectSession}
             onCreate={createSession}
+            onDelete={deleteSession}
             className="flex-1"
             onToggleCollapse={() => setIsHistoryPanelOpen(false)}
           />
@@ -1214,6 +1301,7 @@ export function ChatWindow(props: {
                       activeSessionId={activeSessionId}
                       onSelect={selectSession}
                       onCreate={createSession}
+                      onDelete={deleteSession}
                       className="border-r border-border"
                     />
                   </div>
@@ -1265,6 +1353,7 @@ export function ChatWindow(props: {
                       value={settings}
                       onChange={setSettings}
                       className="h-full"
+                      onExampleClick={(ex) => setInput(ex)}
                     />
                   </div>
                 </DialogContent>
@@ -1284,6 +1373,10 @@ export function ChatWindow(props: {
                 dataSourcesForMessages={dataSourcesForMessages}
                 className={contentMaxWidthClass}
                 onCopyMessage={handleCopyMessage}
+                loadingStep={loadingStep}
+                loadingElapsed={loadingElapsed}
+                company={settings.company}
+                period={getPeriodPromptValue(settings)}
                 onSelectPresetQuestion={sendPresetQuestion}
               />
             }
@@ -1349,6 +1442,7 @@ export function ChatWindow(props: {
             onChange={setSettings}
             className="flex-1"
             onToggleCollapse={() => setIsSettingsPanelOpen(false)}
+            onExampleClick={(ex) => setInput(ex)}
           />
         </div>
       </aside>

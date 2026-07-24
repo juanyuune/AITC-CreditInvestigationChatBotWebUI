@@ -4,13 +4,8 @@ import { cn } from "@/utils/cn";
 import type { Message } from "ai/react";
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { ChevronDown, Copy, Lock, Cloud, Zap } from "lucide-react";
-
-function renderMath(text: string): string {
-  return text
-    .replace(/\\\[[\s\S]*?\\\]/g, (match) => `<div class="math-block">${match.slice(2,-2).trim()}</div>`)
-    .replace(/\\\([\s\S]*?\\\)/g, (match) => `<span class="math-inline">${match.slice(2,-2).trim()}</span>`);
-}
+import { ChevronDown, Copy, Lock, Cloud, Zap, ThumbsUp, ThumbsDown, Check, Download } from "lucide-react";
+import { copyText } from "@/utils/copyText";
 
 function formatRelativeTime(dateStr: string): string {
   const date = new Date(dateStr);
@@ -28,7 +23,7 @@ function formatRelativeTime(dateStr: string): string {
 }
 
 function renderBoldMarkdown(content: string) {
-  const parts = [];
+  const parts: React.ReactNode[] = [];
   let currentIndex = 0;
   let partIndex = 0;
   while (currentIndex < content.length) {
@@ -57,139 +52,334 @@ function parseDispatchMeta(message: Message, dataSources: any[]) {
   return null;
 }
 
-function DispatchBadge(props: {
-  decision: string;
-  model: string;
-  responseTime: number;
-  cached: boolean;
-}) {
-  const isPrivate = props.decision !== "cloud";
-  return (
-    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-      <span className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-medium",
-        isPrivate
-          ? "border border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
-          : "border border-sky-300 bg-sky-50 text-sky-700 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-300"
-      )}>
-        {isPrivate ? <Lock className="h-3 w-3" /> : <Cloud className="h-3 w-3" />}
-        {isPrivate ? "On-premise" : "Cloud"}
-      </span>
-      <span className="rounded-full border border-border bg-muted/50 px-2.5 py-1">
-        {props.model}
-      </span>
-      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 py-1">
-        <Zap className="h-3 w-3" />
-        {props.responseTime.toFixed(1)}s
-      </span>
-      {props.cached && (
-        <span className="rounded-full border border-green-300 bg-green-50 px-2.5 py-1 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300">
-          cached
-        </span>
-      )}
-    </div>
-  );
-}
-
 export function ChatMessageBubble(props: {
   message: Message;
   aiEmoji?: string;
   dataSources: any[];
   onCopy?: (message: Message) => void;
+  loadingStep?: string;
+  loadingElapsed?: number;
+  company?: string;
+  period?: string;
+  reportId?: string;
 }) {
-  const isThinking = props.message.role === "assistant" && props.message.content.trim().length === 0;
+  const isUser = props.message.role === "user";
+  const isThinking = !isUser && props.message.content.trim().length === 0;
+
   const [isDataSourcesOpen, setIsDataSourcesOpen] = useState(false);
+  const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
+  const [showFeedbackInput, setShowFeedbackInput] = useState(false);
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadDone, setDownloadDone] = useState(false);
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const base = process.env.NEXT_PUBLIC_CHATBOT_API_BASE_URL ?? "";
+      // Extract company name from report content — more reliable than selector value
+      const text = props.message.content;
+      const companyMatch = text.match(/公司名稱[：:]\s*([^\n\r，,。]{3,30})/);
+      const periodMatch = text.match(/20\d{2}Q[1-4]/);
+      const extractedCompany = companyMatch ? companyMatch[1].trim() : (props.company ?? "信用調查報告");
+      const extractedPeriod = periodMatch ? periodMatch[0] : (props.period ?? "");
+      const res = await fetch(`${base}/export`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          report_id: props.reportId ?? "",
+          report_text: text,
+          company: extractedCompany,
+          period: extractedPeriod,
+        }),
+      });
+      const data = await res.json();
+      if (data.download_url) {
+        const link = document.createElement("a");
+        link.href = `${base}${data.download_url}`;
+        link.download = data.filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setDownloadDone(true);
+        setTimeout(() => setDownloadDone(false), 3000);
+      }
+    } catch (e) {
+      console.error("Export failed", e);
+    }
+    setDownloading(false);
+  };
+
+  const handleCopy = async () => {
+    try {
+      await copyText(props.message.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      console.error("Copy failed", e);
+    }
+    props.onCopy?.(props.message);
+  };
+
+  const submitFeedback = async (rating: "up" | "down", comment = "") => {
+    setFeedback(rating);
+    setShowFeedbackInput(false);
+    try {
+      const base = process.env.NEXT_PUBLIC_CHATBOT_API_BASE_URL ?? "";
+      await fetch(`${base}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          answer: props.message.content,
+          mode: "",
+          model_used: "",
+          rating: rating === "up" ? 1 : -1,
+          comment,
+        }),
+      });
+    } catch (e) { console.error("Feedback failed", e); }
+  };
+
   const hasDataSources = !isThinking && props.dataSources && props.dataSources.length > 0;
   const dispatchMeta = parseDispatchMeta(props.message, props.dataSources);
-  const showDispatchBadge = props.message.role === "assistant" && !isThinking && dispatchMeta;
 
   return (
     <div className={cn(
       "mb-8 flex max-w-[80%] flex-col",
-      props.message.role === "user" ? "ml-auto items-end" : "mr-auto items-start",
+      isUser ? "ml-auto items-end" : "mr-auto items-start",
     )}>
+
+      {/* ── Message bubble ── */}
       <div className={cn(
-        "flex rounded-[24px]",
-        props.message.role === "user" ? "bg-secondary px-4 py-2 text-secondary-foreground" : null,
+        "flex items-start gap-3",
+        isUser ? "flex-row-reverse" : "flex-row",
       )}>
-        {props.message.role === "assistant" && !isThinking && dispatchMeta && (
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground">
-              {dispatchMeta.dispatch_decision === "private" ? "🔒" : "☁️"}
-              {dispatchMeta.model ?? "Qwen"}
-              {dispatchMeta.response_time_seconds && (
-                <span className="text-muted-foreground/60">· {dispatchMeta.response_time_seconds}s</span>
-              )}
-            </span>
-            {props.dataSources?.filter((s) => !s._aitc_meta && s.source).slice(0,1).map((src, i) => (
-              <span key={i} className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/30 px-2 py-0.5 text-xs text-muted-foreground">
-                📋 {src.source}{src.title ? ` · ${src.title.slice(0,20)}` : ""}
-              </span>
-            ))}
-          </div>
-        )}
-        {props.message.role !== "user" && (
-          <div className="mr-4 border bg-secondary -mt-2 rounded-full w-10 h-10 flex-shrink-0 flex items-center justify-center">
+        {/* Avatar — assistant only */}
+        {!isUser && (
+          <div className="flex-shrink-0 border bg-secondary rounded-full w-9 h-9 flex items-center justify-center text-base mt-0.5">
             {props.aiEmoji}
           </div>
         )}
-        <div className="whitespace-pre-wrap flex flex-col">
+
+        {/* Bubble content */}
+        <div className={cn(
+          "rounded-2xl px-4 py-3",
+          isUser
+            ? "bg-secondary text-secondary-foreground"
+            : "bg-muted/40 text-foreground",
+        )}>
           {isThinking ? (
-            <div className="flex min-h-8 items-center gap-2 text-muted-foreground" aria-label="AI 思考中">
-              <span className="loading-dot" />
-              <span className="loading-dot [animation-delay:0.2s]" />
-              <span className="loading-dot [animation-delay:0.4s]" />
+            <div className="flex min-h-8 flex-col gap-2" aria-label="AI 思考中">
+              {props.loadingStep ? (
+                <div className="flex items-center gap-2.5">
+                  <div className="flex gap-1">
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:0ms]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:150ms]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:300ms]" />
+                  </div>
+                  <span className="text-xs text-muted-foreground">{props.loadingStep}</span>
+                  {props.loadingElapsed !== undefined && props.loadingElapsed > 0 && (
+                    <span className="ml-auto text-xs font-mono text-muted-foreground/50">{props.loadingElapsed}s</span>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="loading-dot" />
+                  <span className="loading-dot [animation-delay:0.2s]" />
+                  <span className="loading-dot [animation-delay:0.4s]" />
+                </div>
+              )}
             </div>
           ) : (
-            <span>{renderBoldMarkdown(props.message.content)}</span>
+            <div className="whitespace-pre-wrap text-sm leading-relaxed">
+              {renderBoldMarkdown(props.message.content)}
+            </div>
           )}
         </div>
       </div>
 
-      {showDispatchBadge && (
-        <DispatchBadge
-          decision={dispatchMeta.dispatch_decision ?? "private"}
-          model={dispatchMeta.model ?? "qwen3.6:27b"}
-          responseTime={dispatchMeta.response_time_seconds ?? 0}
-          cached={dispatchMeta.cached ?? false}
-        />
+      {/* ── Dispatch badge (model / speed / cache) ── */}
+      {!isUser && !isThinking && dispatchMeta && (
+        <div className="mt-2 ml-12 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <span className={cn(
+            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium border",
+            dispatchMeta.dispatch_decision !== "cloud"
+              ? "border-slate-700 bg-slate-800 text-slate-300"
+              : "border-sky-800 bg-sky-950 text-sky-300"
+          )}>
+            {dispatchMeta.dispatch_decision !== "cloud"
+              ? <Lock className="h-3 w-3" />
+              : <Cloud className="h-3 w-3" />}
+            {dispatchMeta.dispatch_decision !== "cloud" ? "On-premise" : "Cloud"}
+          </span>
+          <span className="rounded-full border border-border bg-muted/50 px-2 py-0.5">
+            {dispatchMeta.model ?? "Qwen"}
+          </span>
+          {dispatchMeta.response_time_seconds && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2 py-0.5">
+              <Zap className="h-3 w-3" />
+              {Number(dispatchMeta.response_time_seconds).toFixed(1)}s
+            </span>
+          )}
+          {dispatchMeta.cached && (
+            <span className="rounded-full border border-green-800 bg-green-950 px-2 py-0.5 text-green-300">
+              cached
+            </span>
+          )}
+        </div>
       )}
 
-      {!isThinking ? (
-        <Button type="button" variant="ghost" size="icon"
-          className="mt-1 h-8 w-8 rounded-full text-muted-foreground"
-          onClick={() => props.onCopy?.(props.message)}
-          aria-label="複製訊息" title="複製">
-          <Copy className="h-4 w-4" />
-        </Button>
-      ) : null}
+      {/* ── Action bar: copy + thumbs — assistant only, after answer appears ── */}
+      {!isUser && !isThinking && (
+        <div className="mt-2 ml-12 flex items-center gap-0.5">
+          {/* Copy */}
+          <button
+            type="button"
+            onClick={handleCopy}
+            title="複製"
+            className={cn(
+              "flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors",
+              copied
+                ? "text-green-400"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            )}
+          >
+            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+            <span>{copied ? "已複製" : "複製"}</span>
+          </button>
 
-      {hasDataSources ? (
-        <div className="mt-2 w-full rounded-2xl border border-border bg-muted/40 px-3 py-2">
-          <button type="button"
+          {/* Divider */}
+          <span className="mx-1 h-3.5 w-px bg-border" />
+
+          {/* Download Word */}
+          <button
+            type="button"
+            onClick={handleDownload}
+            title="匯出 Word 文件"
+            disabled={downloading}
+            className={cn(
+              "flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors",
+              downloadDone
+                ? "text-blue-400"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            )}
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>{downloading ? "匯出中..." : downloadDone ? "已下載" : "匯出"}</span>
+          </button>
+
+          {/* Divider */}
+          <span className="mx-1 h-3.5 w-px bg-border" />
+
+          {/* Thumbs up */}
+          <button
+            type="button"
+            onClick={() => submitFeedback("up")}
+            title="正確答案"
+            className={cn(
+              "rounded-md p-1.5 transition-colors",
+              feedback === "up"
+                ? "text-green-400"
+                : "text-muted-foreground hover:text-green-400 hover:bg-muted/50"
+            )}
+          >
+            <ThumbsUp className="h-3.5 w-3.5" />
+          </button>
+
+          {/* Thumbs down */}
+          <button
+            type="button"
+            onClick={() => {
+              if (feedback === "down") return;
+              setShowFeedbackInput((v) => !v);
+            }}
+            title="答案有誤"
+            className={cn(
+              "rounded-md p-1.5 transition-colors",
+              feedback === "down"
+                ? "text-red-400"
+                : "text-muted-foreground hover:text-red-400 hover:bg-muted/50"
+            )}
+          >
+            <ThumbsDown className="h-3.5 w-3.5" />
+          </button>
+
+          {/* Feedback status */}
+          {feedback && (
+            <span className="ml-1 text-xs text-muted-foreground">
+              {feedback === "up" ? "已標記正確" : "已回報錯誤"}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* ── Thumbs-down comment input ── */}
+      {!isUser && showFeedbackInput && (
+        <div className="mt-1.5 ml-12 flex items-center gap-2">
+          <input
+            autoFocus
+            placeholder="說明錯誤原因（可選）"
+            value={feedbackComment}
+            onChange={(e) => setFeedbackComment(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submitFeedback("down", feedbackComment);
+              if (e.key === "Escape") setShowFeedbackInput(false);
+            }}
+            className="text-xs border border-border rounded-md px-2.5 py-1 bg-background w-52 outline-none focus:border-foreground/30"
+          />
+          <button
+            type="button"
+            onClick={() => submitFeedback("down", feedbackComment)}
+            className="text-xs text-red-400 hover:text-red-300 hover:underline"
+          >
+            送出
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowFeedbackInput(false)}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            取消
+          </button>
+        </div>
+      )}
+
+      {/* ── Data sources ── */}
+      {hasDataSources && (
+        <div className="mt-2 ml-12 w-full rounded-2xl border border-border bg-muted/40 px-3 py-2">
+          <button
+            type="button"
             className="flex w-full items-center justify-between gap-3 text-left text-sm"
-            onClick={() => setIsDataSourcesOpen((current) => !current)}>
+            onClick={() => setIsDataSourcesOpen((c) => !c)}
+          >
             <span className="font-medium">數據來源標註</span>
             <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", isDataSourcesOpen ? "rotate-180" : null)} />
           </button>
-          {isDataSourcesOpen ? (
+          {isDataSourcesOpen && (
             <div className="mt-3 space-y-2 text-xs text-muted-foreground">
               {props.dataSources.filter((s) => !s._aitc_meta).map((source, index) => (
-                <div key={`data-source-${index}`} className="rounded-xl border border-border bg-background/80 px-3 py-2">
+                <div key={`source-${index}`} className="rounded-xl border border-border bg-background/80 px-3 py-2">
                   <div className="font-medium text-foreground">
                     {index + 1}. {source.title ?? source.name ?? source.label ?? "資料來源"}
                   </div>
-                  {source.content ?? source.pageContent ? <div className="mt-1">{source.content ?? source.pageContent}</div> : null}
-                  {source.reference ?? source.period ?? source.path ? <div className="mt-1">{source.reference ?? source.period ?? source.path}</div> : null}
+                  {source.content ?? source.pageContent
+                    ? <div className="mt-1">{source.content ?? source.pageContent}</div>
+                    : null}
+                  {source.reference ?? source.period ?? source.path
+                    ? <div className="mt-1">{source.reference ?? source.period ?? source.path}</div>
+                    : null}
                 </div>
               ))}
               <div className="flex justify-end pt-1">
-                <Button type="button" variant="outline" size="sm" onClick={() => setIsDataSourcesOpen(false)}>縮小</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => setIsDataSourcesOpen(false)}>
+                  縮小
+                </Button>
               </div>
             </div>
-          ) : null}
+          )}
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
