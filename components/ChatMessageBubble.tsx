@@ -201,27 +201,29 @@ export function ChatMessageBubble(props: {
 
       {/* ── Dispatch badge (model / speed / cache) ── */}
       {!isUser && !isThinking && dispatchMeta && (
-        <div className="mt-2 ml-12 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-          <span className={cn(
-            "inline-flex items-center rounded-full px-2 py-0.5 font-medium border",
-            dispatchMeta.dispatch_decision !== "cloud"
-              ? "border-slate-700 bg-slate-800 text-slate-300"
-              : "border-sky-800 bg-sky-950 text-sky-300"
-          )}>
-            {dispatchMeta.dispatch_decision !== "cloud" ? "本地端" : "雲端"}
+        <div className="mt-2 ml-12 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <span className="text-muted-foreground/60">
+            {(() => {
+              const m = dispatchMeta.model ?? "";
+              if (m.includes("claude") || m.toLowerCase().includes("claude")) return "Claude Sonnet 4.6";
+              if (m.includes("14B") || m.includes("14b")) return "Qwen 2.5-14B";
+              if (m.includes("3B") || m.includes("3b")) return "Qwen 2.5-3B";
+              if (m.includes("MCP比較") || m.includes("compare")) return "比較分析引擎";
+              if (m.includes("MCP篩選") || m.includes("screen")) return "篩選引擎";
+              return m;
+            })()}
           </span>
-          <span className="rounded-full border border-border bg-muted/50 px-2 py-0.5">
-            {dispatchMeta.model ?? "Qwen"}
-          </span>
-          {dispatchMeta.response_time_seconds && (
-            <span className="rounded-full border border-border bg-muted/50 px-2 py-0.5">
+          <span className="text-muted-foreground/40">·</span>
+          {dispatchMeta.response_time_seconds && Number(dispatchMeta.response_time_seconds) > 0 && (
+            <span className="text-muted-foreground/60">
               {Number(dispatchMeta.response_time_seconds).toFixed(1)} 秒
             </span>
           )}
           {dispatchMeta.cached && (
-            <span className="rounded-full border border-green-800 bg-green-950 px-2 py-0.5 text-green-300">
-              cached
-            </span>
+            <>
+              <span className="text-muted-foreground/40">·</span>
+              <span className="text-muted-foreground/60">快取</span>
+            </>
           )}
         </div>
       )}
