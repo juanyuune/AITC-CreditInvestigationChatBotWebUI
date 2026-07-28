@@ -1104,9 +1104,10 @@ export function ChatWindow(props: {
           }, ...dataSources];
         }
         if (!dataSourcesHeader && dataSources.length > 0) {
-          setDataSourcesForMessages({
+          setDataSourcesForMessages((prev) => ({
+            ...prev,
             [assistantMessageId]: dataSources,
-          });
+          }));
         }
 
         const finalMessages = requestMessages.concat({

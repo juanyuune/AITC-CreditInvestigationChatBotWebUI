@@ -205,11 +205,11 @@ export function ChatMessageBubble(props: {
           <span>
             {(() => {
               const m = dispatchMeta.model ?? "";
-              if (m.toLowerCase().includes("claude")) return "Claude Sonnet 4.6";
-              if (m.includes("14B") || m.includes("14b")) return "Qwen 2.5-14B";
-              if (m.includes("3B") || m.includes("3b")) return "Qwen 2.5-3B";
+              if (m.toLowerCase().includes("claude")) return "Claude Sonnet 4.6 — 信用調查報告";
+              if (m.includes("14B") || m.includes("14b")) return "Qwen 2.5-14B — 財務數據查詢";
+              if (m.includes("3B") || m.includes("3b")) return "Qwen 2.5-3B — 財務比率計算";
               if (m.includes("比較") || m.includes("compare") || m.includes("Compare")) return "比較分析引擎";
-              if (m.includes("篩選") || m.includes("screen") || m.includes("Screen")) return "篩選引擎";
+              if (m.includes("篩選") || m.includes("screen") || m.includes("Screen")) return "全機構篩選引擎";
               if (m) return m;
               return "自動路由";
             })()}
