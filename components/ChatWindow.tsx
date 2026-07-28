@@ -1110,11 +1110,14 @@ export function ChatWindow(props: {
           }));
         }
 
+        // Embed dispatch meta into message object so it persists across sessions
+        const dispatchInfo = dataSources.find((s: any) => s._aitc_meta);
         const finalMessages = requestMessages.concat({
           id: assistantMessageId,
           role: "assistant",
           content: assistantContent,
-        });
+          ...(dispatchInfo ? { dispatch_model: dispatchInfo.model, dispatch_time: dispatchInfo.response_time_seconds, dispatch_cached: dispatchInfo.cached } : {}),
+        } as any);
         replaceActiveSession(finalMessages);
         return;
       }
