@@ -144,7 +144,7 @@ export function ChatMessageBubble(props: {
     } catch (e) { console.error("Feedback failed", e); }
   };
 
-  const hasDataSources = !isThinking && props.dataSources && props.dataSources.length > 0;
+  const hasDataSources = !isThinking && props.dataSources && props.dataSources.filter((s) => !s._aitc_meta).length > 0;
   const dispatchMeta = parseDispatchMeta(props.message, props.dataSources);
 
   return (
