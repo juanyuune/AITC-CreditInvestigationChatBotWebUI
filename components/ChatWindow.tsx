@@ -1090,8 +1090,19 @@ export function ChatWindow(props: {
             : typeof json?.message === "string"
               ? json.message
               : JSON.stringify(json);
-        const dataSources = Array.isArray(json?.data_sources) ? json.data_sources : [];
-
+        // Build dataSources — always include dispatch meta from response root fields
+        let dataSources = Array.isArray(json?.data_sources) ? json.data_sources : [];
+        const hasAitcMeta = dataSources.some((s: any) => s._aitc_meta);
+        if (!hasAitcMeta && (json?.model || json?.response_time_seconds)) {
+          dataSources = [{
+            _aitc_meta: true,
+            model: json?.model ?? "",
+            provider: json?.provider ?? "",
+            response_time_seconds: json?.response_time_seconds ?? 0,
+            dispatch_decision: json?.provider?.toLowerCase().includes("api") ? "cloud" : "private",
+            cached: json?.cached ?? false,
+          }, ...dataSources];
+        }
         if (!dataSourcesHeader && dataSources.length > 0) {
           setDataSourcesForMessages({
             [assistantMessageId]: dataSources,

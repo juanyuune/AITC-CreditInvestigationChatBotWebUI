@@ -201,30 +201,26 @@ export function ChatMessageBubble(props: {
 
       {/* ── Dispatch badge (model / speed / cache) ── */}
       {!isUser && !isThinking && dispatchMeta && (
-        <div className="mt-2 ml-12 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <span className="text-muted-foreground/60">
+        <div className="mt-2 ml-12 flex flex-wrap items-center gap-2 text-xs text-muted-foreground/70">
+          <span>
             {(() => {
               const m = dispatchMeta.model ?? "";
-              if (m.includes("claude") || m.toLowerCase().includes("claude")) return "Claude Sonnet 4.6";
+              if (m.toLowerCase().includes("claude")) return "Claude Sonnet 4.6";
               if (m.includes("14B") || m.includes("14b")) return "Qwen 2.5-14B";
               if (m.includes("3B") || m.includes("3b")) return "Qwen 2.5-3B";
-              if (m.includes("MCP比較") || m.includes("compare")) return "比較分析引擎";
-              if (m.includes("MCP篩選") || m.includes("screen")) return "篩選引擎";
-              return m;
+              if (m.includes("比較") || m.includes("compare") || m.includes("Compare")) return "比較分析引擎";
+              if (m.includes("篩選") || m.includes("screen") || m.includes("Screen")) return "篩選引擎";
+              if (m) return m;
+              return "自動路由";
             })()}
           </span>
           <span className="text-muted-foreground/40">·</span>
-          {dispatchMeta.response_time_seconds && Number(dispatchMeta.response_time_seconds) > 0 && (
-            <span className="text-muted-foreground/60">
-              {Number(dispatchMeta.response_time_seconds).toFixed(1)} 秒
-            </span>
-          )}
-          {dispatchMeta.cached && (
-            <>
-              <span className="text-muted-foreground/40">·</span>
-              <span className="text-muted-foreground/60">快取</span>
-            </>
-          )}
+          <span>
+            {dispatchMeta.cached
+              ? `快取 (原始 ${Number(dispatchMeta.response_time_seconds ?? 0).toFixed(1)} 秒)`
+              : `${Number(dispatchMeta.response_time_seconds ?? 0).toFixed(1)} 秒`
+            }
+          </span>
         </div>
       )}
 
