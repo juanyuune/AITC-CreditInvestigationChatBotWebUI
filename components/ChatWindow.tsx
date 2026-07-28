@@ -753,14 +753,15 @@ function SettingsPanel(props: {
             <option value="qwen3b">Qwen 2.5-3B — 財務比率計算</option>
             <option value="finr1">Fin-R1 7B — 深度財務推理</option>
             <option value="mengzi">Mengzi-BERT-fin — 快速財務分類</option>
+            <option value="screen">全機構篩選 — 26家機構比較</option>
           </select>
           {/* Model description card — updates on selection */}
           {(() => {
             const MODEL_INFO: Record<string, { border: string; bg: string; badge: string; label: string; job: string; examples: string[] }> = {
+              screen: { border: "border-cyan-500/30", bg: "bg-cyan-500/5", badge: "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30", label: "全機構篩選", job: "篩選全台26家FSC監管機構，排名比較財務指標", examples: ["2024Q3所有金控負債比率排名", "哪幾家機構超過FSC警示線", "ROA最高的金融機構"] },
               auto:   { border: "border-emerald-500/30", bg: "bg-emerald-500/5", badge: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30", label: "智能路由", job: "自動分析問題類型，選擇最適合的AI模型", examples: ["國泰金控 2024Q3 信用調查報告", "富邦金 2024Q3 負債比率是否正常", "兆豐金 2024Q3 總資產是多少"] },
               qwen:   { border: "border-blue-500/30", bg: "bg-blue-500/5", badge: "bg-blue-500/20 text-blue-300 border border-blue-500/30", label: "數據查詢", job: "查詢 XBRL 財務數值與多期比較", examples: ["兆豐金 2024Q3 負債比率", "富邦金近三年資產規模", "國泰金 EPS"] },
               ratio:  { border: "border-green-500/30", bg: "bg-green-500/5", badge: "bg-green-500/20 text-green-300 border border-green-500/30", label: "財務計算", job: "Qwen2.5-3B計算財務比率並判斷FSC合規狀態（2-5秒）", examples: ["兆豐金 2024Q3 ROA 是否達標", "富邦金 2024Q3 負債比率風險等級", "國泰金 2024Q3 ROE計算"] },
-              reasoning: { border: "border-orange-500/30", bg: "bg-orange-500/5", badge: "bg-orange-500/20 text-orange-300 border border-orange-500/30", label: "深度推理", job: "Fin-R1分析財務趨勢、原因與比較（30-60秒）", examples: ["為什麼國泰金控負債比率改善", "比較富邦金與國泰金財務風險", "兆豐金ROE趨勢分析"] },
               mengzi: { border: "border-amber-500/30", bg: "bg-amber-500/5", badge: "bg-amber-500/20 text-amber-300 border border-amber-500/30", label: "快速分類", job: "快速判斷財務健康狀態（偏高／正常／偏低）", examples: ["負債比率 91% 是否偏高", "EPS 1.98 元正常嗎", "流動比率 1.2 倍分類"] },
               claude: { border: "border-violet-500/30", bg: "bg-violet-500/5", badge: "bg-violet-500/20 text-violet-300 border border-violet-500/30", label: "深度分析", job: "出具完整 FSC 信用調查報告", examples: ["富邦金 2024Q3 信用調查報告", "國泰金財務風險評估", "兆豐金三期趨勢分析"] },
             };
