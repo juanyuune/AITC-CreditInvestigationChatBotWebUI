@@ -153,9 +153,10 @@ function getSelectedConditionSummary(settings: ChatSettings) {
   const company = getCompanyPromptValue(settings.company);
   const period = getPeriodPromptValue(settings);
   const modelMap: Record<string, string> = {
-    qwen: "Qwen 2.5 · 14B",
-    ratio: "Qwen 2.5-3B",
-    claude: "Claude Sonnet 4.6",
+    auto:    "自動路由",
+    qwen14b: "Qwen 2.5-14B",
+    qwen3b:  "Qwen 2.5-3B",
+    claude:  "Claude Sonnet 4.6",
   };
   const modelLabel = modelMap[settings.selectedModel ?? "auto"] ?? "自動選擇";
 
@@ -754,10 +755,10 @@ function SettingsPanel(props: {
           {/* Model description card — updates on selection */}
           {(() => {
             const MODEL_INFO: Record<string, { border: string; bg: string; badge: string; label: string; job: string; examples: string[] }> = {
-              auto:   { border: "border-emerald-500/30", bg: "bg-emerald-500/5", badge: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30", label: "智能路由", job: "自動分析問題類型，選擇最適合的AI模型", examples: ["國泰金控 2024Q3 信用調查報告", "富邦金 2024Q3 負債比率是否正常", "兆豐金 2024Q3 總資產是多少"] },
-              qwen:   { border: "border-blue-500/30", bg: "bg-blue-500/5", badge: "bg-blue-500/20 text-blue-300 border border-blue-500/30", label: "數據查詢", job: "查詢 XBRL 財務數值與多期比較", examples: ["兆豐金 2024Q3 負債比率", "富邦金近三年資產規模", "國泰金 EPS"] },
-              ratio:  { border: "border-green-500/30", bg: "bg-green-500/5", badge: "bg-green-500/20 text-green-300 border border-green-500/30", label: "財務計算", job: "Qwen2.5-3B計算財務比率並判斷FSC合規狀態（2-5秒）", examples: ["兆豐金 2024Q3 ROA 是否達標", "富邦金 2024Q3 負債比率風險等級", "國泰金 2024Q3 ROE計算"] },
-              claude: { border: "border-violet-500/30", bg: "bg-violet-500/5", badge: "bg-violet-500/20 text-violet-300 border border-violet-500/30", label: "深度分析", job: "出具完整 FSC 信用調查報告", examples: ["富邦金 2024Q3 信用調查報告", "國泰金財務風險評估", "兆豐金三期趨勢分析"] },
+              auto:    { border: "border-emerald-500/30", bg: "bg-emerald-500/5", badge: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30", label: "自動路由", job: "BGE-M3語意分析問題類型，自動選擇最適合的AI代理，無需手動指定", examples: ["國泰金控 2024Q3 信用調查報告", "富邦金 2024Q3 負債比率是否正常", "哪幾家金控負債比率超過警示線"] },
+              qwen14b: { border: "border-blue-500/30", bg: "bg-blue-500/5", badge: "bg-blue-500/20 text-blue-300 border border-blue-500/30", label: "財務數據查詢", job: "從XBRL財務報告中查詢特定財務數值，支援多期比較與欄位查詢", examples: ["國泰金控 2024Q3 總資產是多少", "富邦金近三年股東權益", "兆豐金 2024Q3 本期淨利"] },
+              qwen3b:  { border: "border-green-500/30", bg: "bg-green-500/5", badge: "bg-green-500/20 text-green-300 border border-green-500/30", label: "財務比率計算", job: "計算負債比率、ROA、ROE、EPS年化，並依FSC監理標準給出合規判定", examples: ["國泰金控 2024Q3 負債比率是否正常", "彰化銀行 2024Q3 ROA ROE計算", "負債比率 92.95% 算正常嗎"] },
+              claude:  { border: "border-violet-500/30", bg: "bg-violet-500/5", badge: "bg-violet-500/20 text-violet-300 border border-violet-500/30", label: "信用調查報告", job: "出具完整FSC六大項目信用調查報告，包含財務分析、風險評估與授信建議", examples: ["國泰金控 2024Q3 完整信用調查報告", "富邦金融控股授信評估報告", "彰化銀行 2024Q3 信用分析"] },
             };
             const m = MODEL_INFO[props.value.selectedModel];
             if (!m) return null;
