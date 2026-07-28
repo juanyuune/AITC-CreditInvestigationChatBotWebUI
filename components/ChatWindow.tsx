@@ -61,32 +61,32 @@ type ChatSession = {
 };
 
 const COMPANY_OPTIONS: CompanyOption[] = [
-  { label: "彰化商業銀行股份有限公司 / 2801 / 彰銀", promptValue: "彰化商業銀行股份有限公司(2801.TW)" },
-  { label: "京城商業銀行股份有限公司 / 2809 / 京城銀", promptValue: "京城商業銀行股份有限公司(2809.TW)" },
-  { label: "台中商業銀行股份有限公司 / 2812 / 台中銀", promptValue: "台中商業銀行股份有限公司(2812.TW)" },
-  { label: "臺灣企業銀行股份有限公司 / 2834 / 臺企銀", promptValue: "臺灣企業銀行股份有限公司(2834.TW)" },
-  { label: "聯邦商業銀行股份有限公司 / 2838 / 聯邦銀", promptValue: "聯邦商業銀行股份有限公司(2838.TW)" },
-  { label: "遠東國際商業銀行股份有限公司 / 2845 / 遠東銀", promptValue: "遠東國際商業銀行股份有限公司(2845.TW)" },
-  { label: "新光產物保險股份有限公司 / 2850 / 新產", promptValue: "新光產物保險股份有限公司(2850.TW)" },
-  { label: "中央再保險股份有限公司 / 2851 / 中再保", promptValue: "中央再保險股份有限公司(2851.TW)" },
-  { label: "第一產物保險股份有限公司 / 2852 / 第一保", promptValue: "第一產物保險股份有限公司(2852.TW)" },
-  { label: "三商美邦人壽保險股份有限公司 / 2867 / 三商壽", promptValue: "三商美邦人壽保險股份有限公司(2867.TW)" },
-  { label: "華南金融控股股份有限公司 / 2880 / 華南金", promptValue: "華南金融控股股份有限公司(2880.TW)" },
-  { label: "富邦金融控股股份有限公司 / 2881 / 富邦金", promptValue: "富邦金融控股股份有限公司(2881.TW)" },
-  { label: "國泰金融控股股份有限公司 / 2882 / 國泰金", promptValue: "國泰金融控股股份有限公司(2882.TW)" },
-  { label: "開發金融控股股份有限公司 / 2883 / 開發金", promptValue: "開發金融控股股份有限公司(2883.TW)" },
-  { label: "玉山金融控股股份有限公司 / 2884 / 玉山金", promptValue: "玉山金融控股股份有限公司(2884.TW)" },
-  { label: "元大金融控股股份有限公司 / 2885 / 元大金", promptValue: "元大金融控股股份有限公司(2885.TW)" },
-  { label: "兆豐金融控股股份有限公司 / 2886 / 兆豐金", promptValue: "兆豐金融控股股份有限公司(2886.TW)" },
-  { label: "台新金融控股股份有限公司 / 2887 / 台新金", promptValue: "台新金融控股股份有限公司(2887.TW)" },
-  { label: "新光金融控股股份有限公司 / 2888 / 新光金", promptValue: "新光金融控股股份有限公司(2888.TW)" },
-  { label: "國票金融控股股份有限公司 / 2889 / 國票金", promptValue: "國票金融控股股份有限公司(2889.TW)" },
-  { label: "永豐金融控股股份有限公司 / 2890 / 永豐金", promptValue: "永豐金融控股股份有限公司(2890.TW)" },
-  { label: "中國信託金融控股股份有限公司 / 2891 / 中信金", promptValue: "中國信託金融控股股份有限公司(2891.TW)" },
-  { label: "第一金融控股股份有限公司 / 2892 / 第一金", promptValue: "第一金融控股股份有限公司(2892.TW)" },
-  { label: "三商投資控股股份有限公司 / 2905 / 三商", promptValue: "三商投資控股股份有限公司(2905.TW)" },
-  { label: "合庫金融控股股份有限公司 / 5834 / 合庫金", promptValue: "合庫金融控股股份有限公司(5834.TW)" },
-  { label: "上海商業儲蓄銀行股份有限公司 / 5876 / 上海商銀", promptValue: "上海商業儲蓄銀行股份有限公司(5876.TW)" },
+  { label: "彰化商業銀行 / 2801 / 彰銀", promptValue: "彰化銀行" },
+  { label: "京城商業銀行 / 2809 / 京城銀", promptValue: "京城銀行" },
+  { label: "台中商業銀行 / 2812 / 台中銀", promptValue: "台中銀行" },
+  { label: "臺灣企業銀行 / 2834 / 臺企銀", promptValue: "臺灣企業銀行" },
+  { label: "聯邦商業銀行 / 2838 / 聯邦銀", promptValue: "聯邦銀行" },
+  { label: "遠東國際商業銀行 / 2845 / 遠東銀", promptValue: "遠東銀行" },
+  { label: "新光產物保險 / 2850 / 新產", promptValue: "新光產物保險" },
+  { label: "中央再保險 / 2851 / 中再保", promptValue: "中央再保險" },
+  { label: "第一產物保險 / 2852 / 第一保", promptValue: "第一產物保險" },
+  { label: "三商美邦人壽 / 2867 / 三商壽", promptValue: "三商美邦人壽" },
+  { label: "華南金融控股 / 2880 / 華南金", promptValue: "華南金控" },
+  { label: "富邦金融控股 / 2881 / 富邦金", promptValue: "富邦金控" },
+  { label: "國泰金融控股 / 2882 / 國泰金", promptValue: "國泰金控" },
+  { label: "開發金融控股 / 2883 / 開發金", promptValue: "開發金控" },
+  { label: "玉山金融控股 / 2884 / 玉山金", promptValue: "玉山金控" },
+  { label: "元大金融控股 / 2885 / 元大金", promptValue: "元大金控" },
+  { label: "兆豐金融控股 / 2886 / 兆豐金", promptValue: "兆豐金控" },
+  { label: "台新金融控股 / 2887 / 台新金", promptValue: "台新金控" },
+  { label: "新光金融控股 / 2888 / 新光金", promptValue: "新光金控" },
+  { label: "國票金融控股 / 2889 / 國票金", promptValue: "國票金控" },
+  { label: "永豐金融控股 / 2890 / 永豐金", promptValue: "永豐金控" },
+  { label: "中國信託金融控股 / 2891 / 中信金", promptValue: "中信金控" },
+  { label: "第一金融控股 / 2892 / 第一金", promptValue: "第一金控" },
+  { label: "三商投資控股 / 2905 / 三商", promptValue: "三商投控" },
+  { label: "合庫金融控股 / 5834 / 合庫金", promptValue: "合庫金控" },
+  { label: "上海商業儲蓄銀行 / 5876 / 上海商銀", promptValue: "上海商銀" },
 ];
 
 function getCompanyPromptValue(companyLabel: string) {
@@ -107,7 +107,7 @@ function getPeriodPromptValue(settings: ChatSettings) {
 
   if (settings.period === "季度") {
     if (!settings.periodYear || !settings.periodQuarter) return "";
-    return `${settings.periodYear}年${settings.periodQuarter}`;
+    return `${settings.periodYear}${settings.periodQuarter}`;
   }
 
   return settings.period;
@@ -154,11 +154,11 @@ function getSelectedConditionSummary(settings: ChatSettings) {
   const period = getPeriodPromptValue(settings);
   const modelMap: Record<string, string> = {
     qwen: "Qwen 2.5 · 14B",
-    finr1: "Fin-R1 · 7B",
+    ratio: "Fin-R1 · 7B",
     mengzi: "Mengzi-BERT-fin",
     claude: "Claude Sonnet 4.6",
   };
-  const modelLabel = modelMap[settings.selectedModel ?? "qwen"] ?? "Qwen 2.5 · 14B";
+  const modelLabel = modelMap[settings.selectedModel ?? "auto"] ?? "自動選擇";
 
   if (!company && !period) {
     return `${modelLabel} · 未套用公司與期間條件`;
@@ -176,7 +176,7 @@ function createEmptySettings(): ChatSettings {
     periodYear: "",
     periodQuarter: "",
     statementType: "",
-    selectedModel: "qwen",
+    selectedModel: "auto",
   };
 }
 
@@ -738,22 +738,29 @@ function SettingsPanel(props: {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">模型選擇器</label>
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium">專家模式</label>
+            <span className="text-[10px] text-foreground/40">預設自動路由 — 可手動指定模型</span>
+          </div>
           <select
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
-            value={props.value.selectedModel}
+            value={props.value.selectedModel ?? "auto"}
             onChange={(event) => props.onChange({ ...props.value, selectedModel: event.target.value })}
           >
-            <option value="qwen">Qwen 2.5 · 14B — 數據查詢</option>
-            <option value="finr1">Fin-R1 · 7B — 財務計算</option>
-            <option value="mengzi">Mengzi-BERT-fin — 快速分類</option>
-            <option value="claude">Claude Sonnet 4.6 — 深度分析</option>
+            <option value="auto">自動路由（建議）</option>
+            <option value="claude">Claude Sonnet 4.6 — 信用調查報告</option>
+            <option value="qwen14b">Qwen 2.5-14B — 財務數據查詢</option>
+            <option value="qwen3b">Qwen 2.5-3B — 財務比率計算</option>
+            <option value="finr1">Fin-R1 7B — 深度財務推理</option>
+            <option value="mengzi">Mengzi-BERT-fin — 快速財務分類</option>
           </select>
           {/* Model description card — updates on selection */}
           {(() => {
             const MODEL_INFO: Record<string, { border: string; bg: string; badge: string; label: string; job: string; examples: string[] }> = {
+              auto:   { border: "border-emerald-500/30", bg: "bg-emerald-500/5", badge: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30", label: "智能路由", job: "自動分析問題類型，選擇最適合的AI模型", examples: ["國泰金控 2024Q3 信用調查報告", "富邦金 2024Q3 負債比率是否正常", "兆豐金 2024Q3 總資產是多少"] },
               qwen:   { border: "border-blue-500/30", bg: "bg-blue-500/5", badge: "bg-blue-500/20 text-blue-300 border border-blue-500/30", label: "數據查詢", job: "查詢 XBRL 財務數值與多期比較", examples: ["兆豐金 2024Q3 負債比率", "富邦金近三年資產規模", "國泰金 EPS"] },
-              finr1:  { border: "border-green-500/30", bg: "bg-green-500/5", badge: "bg-green-500/20 text-green-300 border border-green-500/30", label: "財務計算", job: "計算財務比率並判斷 FSC 合規狀態", examples: ["兆豐金 ROA 是否達標", "富邦金負債比率風險等級", "國泰金流動比率評估"] },
+              ratio:  { border: "border-green-500/30", bg: "bg-green-500/5", badge: "bg-green-500/20 text-green-300 border border-green-500/30", label: "財務計算", job: "Qwen2.5-3B計算財務比率並判斷FSC合規狀態（2-5秒）", examples: ["兆豐金 2024Q3 ROA 是否達標", "富邦金 2024Q3 負債比率風險等級", "國泰金 2024Q3 ROE計算"] },
+              reasoning: { border: "border-orange-500/30", bg: "bg-orange-500/5", badge: "bg-orange-500/20 text-orange-300 border border-orange-500/30", label: "深度推理", job: "Fin-R1分析財務趨勢、原因與比較（30-60秒）", examples: ["為什麼國泰金控負債比率改善", "比較富邦金與國泰金財務風險", "兆豐金ROE趨勢分析"] },
               mengzi: { border: "border-amber-500/30", bg: "bg-amber-500/5", badge: "bg-amber-500/20 text-amber-300 border border-amber-500/30", label: "快速分類", job: "快速判斷財務健康狀態（偏高／正常／偏低）", examples: ["負債比率 91% 是否偏高", "EPS 1.98 元正常嗎", "流動比率 1.2 倍分類"] },
               claude: { border: "border-violet-500/30", bg: "bg-violet-500/5", badge: "bg-violet-500/20 text-violet-300 border border-violet-500/30", label: "深度分析", job: "出具完整 FSC 信用調查報告", examples: ["富邦金 2024Q3 信用調查報告", "國泰金財務風險評估", "兆豐金三期趨勢分析"] },
             };
@@ -1036,7 +1043,7 @@ export function ChatWindow(props: {
       if (backendBase) {
         // Call FastAPI directly: GET /chatbot/{question}
         const encoded = encodeURIComponent(question.trim());
-        const mode = settings.selectedModel ?? "qwen";
+        const mode = settings.selectedModel ?? "auto";
         response = await fetch(`${backendBase}/chatbot`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
