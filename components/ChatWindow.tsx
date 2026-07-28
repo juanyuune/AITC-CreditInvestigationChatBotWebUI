@@ -1110,19 +1110,16 @@ export function ChatWindow(props: {
           }));
         }
 
-        // Store dispatch meta in message annotations — AI SDK official extension point
-        // annotations persists with message in localStorage via replaceActiveSession
+        // Embed dispatch meta as invisible tag at end of message content
+        // This survives all session saves/loads since content is always preserved
         const dispatchInfo = dataSources.find((s: any) => s._aitc_meta);
+        const dispatchTag = dispatchInfo
+          ? `\n<!--aitc:${JSON.stringify({ model: dispatchInfo.model, time: dispatchInfo.response_time_seconds, cached: dispatchInfo.cached })}-->`
+          : "";
         const finalMessages = requestMessages.concat({
           id: assistantMessageId,
           role: "assistant",
-          content: assistantContent,
-          annotations: dispatchInfo ? [{
-            dispatch_decision: "on-premise",
-            model: dispatchInfo.model,
-            response_time_seconds: dispatchInfo.response_time_seconds,
-            cached: dispatchInfo.cached,
-          }] : [],
+          content: assistantContent + dispatchTag,
         });
         replaceActiveSession(finalMessages);
         return;

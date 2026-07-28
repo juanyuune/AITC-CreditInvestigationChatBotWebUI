@@ -42,17 +42,27 @@ function renderBoldMarkdown(content: string) {
 }
 
 function parseDispatchMeta(message: Message, dataSources: any[]) {
-  // Primary: message annotations — persists in localStorage with session
-  // This is the only reliable source since dataSourcesForMessages is cleared on session switch
-  const annotations = (message as any).annotations;
-  if (Array.isArray(annotations)) {
-    const found = annotations.find((a: any) => a?.model || a?.dispatch_decision);
-    if (found) return found;
+  // Primary: embedded tag in message content — survives all session save/load cycles
+  const tagMatch = message.content.match(/<!--aitc:(.*?)-->/);
+  if (tagMatch) {
+    try {
+      const parsed = JSON.parse(tagMatch[1]);
+      if (parsed.model) return {
+        model: parsed.model,
+        response_time_seconds: parsed.time ?? 0,
+        cached: parsed.cached ?? false,
+        dispatch_decision: "on-premise",
+      };
+    } catch {}
   }
-  // Fallback: dataSources for the current live response (before session save)
+  // Fallback: dataSources for live response before session save
   const meta = dataSources.find((s) => s._aitc_meta);
   if (meta?._aitc_meta) return meta._aitc_meta;
   return null;
+}
+
+function stripDispatchTag(content: string): string {
+  return content.replace(/\n<!--aitc:.*?-->/, "");
 }
 
 export function ChatMessageBubble(props: {
@@ -196,7 +206,7 @@ export function ChatMessageBubble(props: {
             </div>
           ) : (
             <div className="whitespace-pre-wrap text-sm leading-relaxed">
-              {renderBoldMarkdown(props.message.content)}
+              {renderBoldMarkdown(stripDispatchTag(props.message.content))}
             </div>
           )}
         </div>
