@@ -200,7 +200,7 @@ export function ChatMessageBubble(props: {
       </div>
 
       {/* ── Dispatch badge (model / speed / cache) ── */}
-      {!isUser && !isThinking && dispatchMeta && (
+      {!isUser && !isThinking && dispatchMeta && dispatchMeta.model && (
         <div className="mt-2 ml-12 flex flex-wrap items-center gap-2 text-xs text-muted-foreground/70">
           <span>
             {(() => {
@@ -210,8 +210,7 @@ export function ChatMessageBubble(props: {
               if (m.includes("3B") || m.includes("3b")) return "Qwen 2.5-3B — 財務比率計算";
               if (m.includes("比較") || m.includes("compare") || m.includes("Compare")) return "比較分析引擎";
               if (m.includes("篩選") || m.includes("screen") || m.includes("Screen")) return "全機構篩選引擎";
-              if (m) return m;
-              return "自動路由";
+              return m;
             })()}
           </span>
           <span className="text-muted-foreground/40">·</span>
