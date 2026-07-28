@@ -1110,14 +1110,20 @@ export function ChatWindow(props: {
           }));
         }
 
-        // Embed dispatch meta into message object so it persists across sessions
+        // Store dispatch meta in message annotations — AI SDK official extension point
+        // annotations persists with message in localStorage via replaceActiveSession
         const dispatchInfo = dataSources.find((s: any) => s._aitc_meta);
         const finalMessages = requestMessages.concat({
           id: assistantMessageId,
           role: "assistant",
           content: assistantContent,
-          ...(dispatchInfo ? { dispatch_model: dispatchInfo.model, dispatch_time: dispatchInfo.response_time_seconds, dispatch_cached: dispatchInfo.cached } : {}),
-        } as any);
+          annotations: dispatchInfo ? [{
+            dispatch_decision: "on-premise",
+            model: dispatchInfo.model,
+            response_time_seconds: dispatchInfo.response_time_seconds,
+            cached: dispatchInfo.cached,
+          }] : [],
+        });
         replaceActiveSession(finalMessages);
         return;
       }

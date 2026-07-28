@@ -42,23 +42,14 @@ function renderBoldMarkdown(content: string) {
 }
 
 function parseDispatchMeta(message: Message, dataSources: any[]) {
-  // Priority 1: dataSources from API response (current session)
+  // Priority 1: dataSources from API response (fresh response)
   const meta = dataSources.find((s) => s._aitc_meta);
   if (meta?._aitc_meta) return meta._aitc_meta;
-  // Priority 2: embedded in message object (persists across sessions)
-  const msg = message as any;
-  if (msg.dispatch_model) {
-    return {
-      model: msg.dispatch_model,
-      response_time_seconds: msg.dispatch_time ?? 0,
-      cached: msg.dispatch_cached ?? false,
-      dispatch_decision: "on-premise",
-    };
-  }
-  // Priority 3: annotations (streaming path)
-  const annotations = msg.annotations;
+  // Priority 2: message annotations — AI SDK official extension point
+  // Persists with message in localStorage via replaceActiveSession
+  const annotations = (message as any).annotations;
   if (Array.isArray(annotations)) {
-    const found = annotations.find((a: any) => a?.dispatch_decision);
+    const found = annotations.find((a: any) => a?.model || a?.dispatch_decision);
     if (found) return found;
   }
   return null;
