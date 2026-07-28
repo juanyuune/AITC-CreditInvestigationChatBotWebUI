@@ -4,7 +4,7 @@ import { cn } from "@/utils/cn";
 import type { Message } from "ai/react";
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { ChevronDown, Copy, Lock, Cloud, Zap, ThumbsUp, ThumbsDown, Check, Download } from "lucide-react";
+import { ChevronDown, Copy, ThumbsUp, ThumbsDown, Check, Download } from "lucide-react";
 import { copyText } from "@/utils/copyText";
 
 function formatRelativeTime(dateStr: string): string {
@@ -203,23 +203,19 @@ export function ChatMessageBubble(props: {
       {!isUser && !isThinking && dispatchMeta && (
         <div className="mt-2 ml-12 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           <span className={cn(
-            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium border",
+            "inline-flex items-center rounded-full px-2 py-0.5 font-medium border",
             dispatchMeta.dispatch_decision !== "cloud"
               ? "border-slate-700 bg-slate-800 text-slate-300"
               : "border-sky-800 bg-sky-950 text-sky-300"
           )}>
-            {dispatchMeta.dispatch_decision !== "cloud"
-              ? <Lock className="h-3 w-3" />
-              : <Cloud className="h-3 w-3" />}
-            {dispatchMeta.dispatch_decision !== "cloud" ? "On-premise" : "Cloud"}
+            {dispatchMeta.dispatch_decision !== "cloud" ? "本地端" : "雲端"}
           </span>
           <span className="rounded-full border border-border bg-muted/50 px-2 py-0.5">
             {dispatchMeta.model ?? "Qwen"}
           </span>
           {dispatchMeta.response_time_seconds && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2 py-0.5">
-              <Zap className="h-3 w-3" />
-              {Number(dispatchMeta.response_time_seconds).toFixed(1)}s
+            <span className="rounded-full border border-border bg-muted/50 px-2 py-0.5">
+              {Number(dispatchMeta.response_time_seconds).toFixed(1)} 秒
             </span>
           )}
           {dispatchMeta.cached && (

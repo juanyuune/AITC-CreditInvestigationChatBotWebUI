@@ -27,7 +27,7 @@ export default function Home() {
         </li>
         <li className="text-l">
           <span className="ml-2">
-            快速測試：<code>台泥 2024年Q1 的現金及約當現金</code>
+            快速測試：<code>國泰金控 2024Q3 負債比率是否正常</code>
           </span>
         </li>
       </ul>
@@ -38,7 +38,7 @@ export default function Home() {
     <ChatWindow
       endpoint="api/chat"
       emoji="🤖"
-      placeholder="請輸入授信調查問題，例如：台泥 2024年Q1 現金及約當現金"
+      placeholder="請輸入授信調查問題，例如：國泰金控 2024Q3 負債比率是否正常"
       emptyStateComponent={InfoCard}
       showIngestForm={true}
       presetQuestions={[

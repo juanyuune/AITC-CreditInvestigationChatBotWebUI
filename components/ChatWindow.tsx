@@ -493,7 +493,7 @@ function ConversationHistory(props: {
     <div className={cn("flex h-full flex-col bg-muted/30", props.className)}>
       <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-4">
         <div>
-          <div className="text-sm font-semibold">對話歷史紀錄</div>
+          <div className="text-sm font-semibold">查詢記錄</div>
           <div className="text-xs text-muted-foreground">可切換過去案件或問答</div>
         </div>
         {props.onToggleCollapse ? (
@@ -738,8 +738,8 @@ function SettingsPanel(props: {
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">專家模式</label>
-            <span className="text-[10px] text-foreground/40">預設自動路由 — 可手動指定模型</span>
+            <label className="text-sm font-medium text-foreground/70">指定模型（選擇性）</label>
+            <span className="text-[10px] text-foreground/40">預設自動路由，可手動指定</span>
           </div>
           <select
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
@@ -843,8 +843,8 @@ export function ChatWindow(props: {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(true);
-  const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(true);
+  const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
+  const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
   const [settings, setSettings] = useState<ChatSettings>(createEmptySettings());
   const [loadingStep, setLoadingStep] = useState<string>("");
   const [loadingElapsed, setLoadingElapsed] = useState<number>(0);
@@ -1294,7 +1294,7 @@ export function ChatWindow(props: {
                 </DialogTrigger>
                 <DialogContent className="p-0 sm:max-w-md">
                   <DialogHeader className="px-6 pt-6">
-                    <DialogTitle>對話歷史紀錄</DialogTitle>
+                    <DialogTitle>查詢記錄</DialogTitle>
                     <DialogDescription>切換過去的案件與問答內容</DialogDescription>
                   </DialogHeader>
                   <div className="h-[60vh]">
