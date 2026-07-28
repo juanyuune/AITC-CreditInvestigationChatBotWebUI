@@ -226,7 +226,7 @@ export function ChatMessageBubble(props: {
               return m;
             })()}
           </span>
-          <span className="text-muted-foreground/40">·</span>
+          <span className="text-muted-foreground/40"> · </span>
           <span>
             {dispatchMeta.cached
               ? `快取 (原始 ${Number(dispatchMeta.response_time_seconds ?? 0).toFixed(1)} 秒)`
