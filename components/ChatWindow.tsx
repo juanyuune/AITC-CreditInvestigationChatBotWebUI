@@ -154,7 +154,7 @@ function getSelectedConditionSummary(settings: ChatSettings) {
   const period = getPeriodPromptValue(settings);
   const modelMap: Record<string, string> = {
     qwen: "Qwen 2.5 · 14B",
-    ratio: "Fin-R1 · 7B",
+    ratio: "Qwen 2.5-3B",
     claude: "Claude Sonnet 4.6",
   };
   const modelLabel = modelMap[settings.selectedModel ?? "auto"] ?? "自動選擇";
@@ -750,13 +750,10 @@ function SettingsPanel(props: {
             <option value="claude">Claude Sonnet 4.6 — 信用調查報告</option>
             <option value="qwen14b">Qwen 2.5-14B — 財務數據查詢</option>
             <option value="qwen3b">Qwen 2.5-3B — 財務比率計算</option>
-            <option value="finr1">Fin-R1 7B — 深度財務推理</option>
-            <option value="screen">全機構篩選 — 26家機構比較</option>
           </select>
           {/* Model description card — updates on selection */}
           {(() => {
             const MODEL_INFO: Record<string, { border: string; bg: string; badge: string; label: string; job: string; examples: string[] }> = {
-              screen: { border: "border-cyan-500/30", bg: "bg-cyan-500/5", badge: "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30", label: "全機構篩選", job: "篩選全台26家FSC監管機構，排名比較財務指標", examples: ["2024Q3所有金控負債比率排名", "哪幾家機構超過FSC警示線", "ROA最高的金融機構"] },
               auto:   { border: "border-emerald-500/30", bg: "bg-emerald-500/5", badge: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30", label: "智能路由", job: "自動分析問題類型，選擇最適合的AI模型", examples: ["國泰金控 2024Q3 信用調查報告", "富邦金 2024Q3 負債比率是否正常", "兆豐金 2024Q3 總資產是多少"] },
               qwen:   { border: "border-blue-500/30", bg: "bg-blue-500/5", badge: "bg-blue-500/20 text-blue-300 border border-blue-500/30", label: "數據查詢", job: "查詢 XBRL 財務數值與多期比較", examples: ["兆豐金 2024Q3 負債比率", "富邦金近三年資產規模", "國泰金 EPS"] },
               ratio:  { border: "border-green-500/30", bg: "bg-green-500/5", badge: "bg-green-500/20 text-green-300 border border-green-500/30", label: "財務計算", job: "Qwen2.5-3B計算財務比率並判斷FSC合規狀態（2-5秒）", examples: ["兆豐金 2024Q3 ROA 是否達標", "富邦金 2024Q3 負債比率風險等級", "國泰金 2024Q3 ROE計算"] },
