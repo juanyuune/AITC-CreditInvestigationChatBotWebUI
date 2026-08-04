@@ -342,6 +342,13 @@ function ChatMessages(props: {
             company={props.company}
             period={props.period}
             reportId={(message as any).report_id ?? ""}
+            question={
+              message.role === "assistant"
+                ? (props.messages[index - 1]?.role === "user"
+                    ? props.messages[index - 1].content
+                    : "")
+                : ""
+            }
           />
         );
       })}

@@ -75,6 +75,7 @@ export function ChatMessageBubble(props: {
   company?: string;
   period?: string;
   reportId?: string;
+  question?: string;
 }) {
   const isUser = props.message.role === "user";
   const isThinking = !isUser && props.message.content.trim().length === 0;
@@ -144,6 +145,7 @@ export function ChatMessageBubble(props: {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          question: props.question ?? "",
           answer: props.message.content,
           mode: "",
           model_used: "",
